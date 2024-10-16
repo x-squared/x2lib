@@ -1,0 +1,443 @@
+-- ********************************************************************
+-- Do this stuff later
+-- ********************************************************************
+
+/- ---------- Contracted neighbourhood ----------------------------- -/
+
+/-- Contracting a cone neighbourhood, i.e. dilating by a factor less
+than `1`, yields a cone nighbourhood. Even though a contraction is a
+homeomorphism, care must be taken because rescaling will not leave the
+enclosing set invariant.
+
+This theorem is relevant in the context of polyhedra, where it serves
+to show that any neighbourhood of a point of a polyhedron contains a
+cone-neighbourhood. -/
+theorem contracted_is_coneNhd (cn : ConeNhd 𝕜 V P s) (hk : k ∈ Set.Ioo (0:𝕜) 1) :
+    IsConeNhd 𝕜 V P (cn.contract hk) s where
+  carrier_subset_of_set :=
+    subset_trans (subset_trans (cn.contracted_subset_carrier_interior hk) (cn.carrier_interior_subset_carrier)) (cn.carrier_subset_of_set)
+  carrier_is_closed := by
+    have hc := (AffineMap.homothety_homeomorph_of_field cn.vertex (Set.Ioo_neq_0 hk)).isClosedMap cn.carrier cn.carrier_is_closed
+    have h1 : AffineMap.homothety_homeomorph_of_field cn.vertex (Set.Ioo_neq_0 hk) '' cn.carrier = contract cn.toCone hk := by
+      have h2 := congr_arg (fun f => f '' cn.carrier ) (AffineMap.homothety_homeomorph_of_field_toFun cn.vertex (Set.Ioo_neq_0 hk))
+      dsimp at h2
+      rw [h2, contract_carrier, contraction]
+    rw [h1] at hc
+    exact hc
+    done
+  carrier_interior_is_rel_open := by
+    -- The carrier's interior of the contract is in the carrier's interior
+    have hsub := subset_trans ((cn.contract hk).carrier_interior_subset_carrier) (cn.contracted_subset_carrier_interior hk)
+    -- We only need to show that the carrier's inerior of the contract is open in the carrier's interior
+    suffices hcioc : IsOpen $ rel[cn.carrier_interior] hsub by
+      rcases (rel_open_iff_inter_with_open cn.carrier_interior_subset_of_set).mp cn.carrier_interior_is_rel_open with ⟨oci, hoci, hsoci⟩
+      rcases (rel_open_iff_inter_with_open hsub).mp hcioc with ⟨oci', hoci', hsoci'⟩
+      rw [rel_open_iff_inter_with_open]
+      use oci ∩ oci'
+      apply And.intro $ IsOpen.inter hoci hoci'
+      rw [←Set.inter_assoc, hsoci, hsoci']
+      done
+    rcases (rel_open_iff_inter_with_open cn.carrier_interior_subset_carrier).mp cn.carrier_interior_is_rel_open_in_carrier with ⟨o, ⟨hoo, hsoci⟩⟩
+    let o' := cn.contraction hk '' o
+    have hoo' : IsOpen o' := (AffineMap.homothety_homeomorph_of_field cn.vertex (Set.Ioo_neq_0 hk)).isOpenMap o hoo
+    rw [rel_open_iff_inter_with_open]
+    use o'
+    apply And.intro hoo'
+    have hh:= cn.contraction_inter_comm hk (Eq.subset hsoci)
+    rw [hsoci, ←contract_carrier_interior] at hh
+    exact hh
+    done
+
+/-- Given a cone-neighbourhood, this provides the instance of a contracted
+cone-neighbourhood. -/
+def contracted (cn : ConeNhd 𝕜 V P s) (hk : k ∈ Set.Ioo (0:𝕜) 1) :
+  ConeNhd 𝕜 V P s := cn.contracted_is_coneNhd hk
+
+/-- Given another representation of a set which is provably equal to
+the set of a given star-neighbourhood, the star-neighbourhood can also
+be seen as a star-neighbourhood of the second set. -/
+def to_eq_set (sn : StarNhd 𝕜 V P s) (hs : s = s') : StarNhd 𝕜 V P s' :=
+ ⟨sn.toConeNhd.to_eq_set hs, sn.base_is_polyhedron⟩
+
+
+/-- Contracting a cone neighbourhood, i.e. dilating by a factor less than `1`,
+yields a cone nighbourhood. Even though a contraction is a homeomorphism,
+care must be taken because rescaling will not leave the carrier set invariant.
+The proof thus needs to show that the cone-neighbourhood can actually be
+contracted within the carrier set. This requires that the ambient affine
+space must have a topology that behaves suitably under rescaling which
+is precisely the topology given by `Affine.PolyhedralSpace`.
+
+This theorem is relevant in the context of polyhedra, where it serves to show
+that any neighbourhood of a point of a polhyedron contains a cone-neighbourhood. -/
+def contracted [Affine.PolyhedralSpace 𝕜 V P] (cn : ConeNhd 𝕜 V P s) (hk : k ∈ Set.Ioo (0:𝕜) 1) : ConeNhd 𝕜 V P s where
+  vertex := cn.vertex
+  base := (cn.contract hk).base
+  vertex_not_in_base := by
+    rw [←cn.contract_fixes_vertex hk]
+    exact (cn.contract hk).vertex_not_in_base
+  lines_intersect_eq_base_points := by
+    rw [←cn.contract_fixes_vertex hk]
+    exact (cn.contract hk).lines_intersect_eq_base_points
+  carrier_subset_of_set := by
+    exact subset_trans (subset_trans (cn.contracted_subset_carrier_interior hk) (cn.carrier_interior_subset_carrier)) (cn.carrier_subset_of_set)
+  carrier_is_nhd := by
+    rcases cn.carrier_interior_is_nhd__witness with ⟨u, ⟨hun, husc⟩⟩
+    let cu := (cn.contraction hk) '' u
+    have hcun : cu ∈ 𝓝 cn.vertex := AffineMap.homothety_maps_nhds_of_vertex_to_nhds cn.vertex (Set.Ioo_01_neq_0 hk) hun
+    have hcusc : cu ∩ s ⊆ (cn.contract hk).carrier_interior := by
+
+      admit
+    exact ⟨cu, ⟨hcun, hcusc⟩⟩
+  base_is_closed := by
+    exact (Homeomorph.isClosedMap $ AffineMap.homothety_homeomorph_of_field cn.vertex (LT.lt.ne (Set.mem_Ioo.mp hk).left).symm) cn.base cn.base_is_closed
+
+
+-- ********************************************************************
+section «Cone rays»
+
+/-!
+## Rays of cones
+
+In this section we look at the rays defined by the vertex of an affine
+cone and a base-point.
+ -/
+
+variable {𝕜 : Type u} [LinearOrderedField 𝕜]
+variable {V : Type v} [AddCommGroup V] [Module 𝕜 V]
+variable {P : Type w} [AddTorsor V P]
+
+namespace Affine.Cone
+
+/-- This maps each point different from the cone's vertex to its ray in ray-space. -/
+def ray (c : Cone 𝕜 V P) (p : c.vertexC) : Module.Ray 𝕜 V :=
+  RayVector.ray $ c.vector_to' p
+
+/-- This maps each point different from the cone's vertex to its ray in ray-space. -/
+def ray' (c : Cone 𝕜 V P) (hp : p ≠ c.vertex) : Module.Ray 𝕜 V :=
+  RayVector.ray' (vsub_ne_zero.mpr hp)
+
+/-- This maps a base-point to its ray in ray-space. -/
+def rayb (c : Cone 𝕜 V P) (hb : b ∈ c.base) : Module.Ray 𝕜 V :=
+  c.ray' (c.vertex_neq_base_point hb).symm
+
+/-- The defintion of `ray_to` is independent of the cone used to define it. -/
+theorem ray_to_independent_of_cone (c : Cone 𝕜 V P) (c' : Cone 𝕜 V P) (hv : c.vertex = c'.vertex) (hp : p ≠ c.vertex) :
+    c.ray' hp = c'.ray' (hp ∘ (fun x => Eq.trans x hv.symm)) := by
+  unfold ray'
+  rw [RayVector.ray', RayVector.ray_eq_iff_same_ray]
+  simp only [vector_to_def]
+  have hp' := hp ∘ (fun x => Eq.trans x hv.symm)
+  rw [ray_eq_iff (vsub_ne_zero.mpr hp) (vsub_ne_zero.mpr hp')]
+  rw [hv]
+
+/-- This is a restatement of `SameRay.ray_eq_iff`. -/
+theorem ray_to_eq_iff_same_ray (c : Cone 𝕜 V P) (hp₁ : p₁ ≠ c.vertex) (hp₂ : p₂ ≠ c.vertex) :
+    c.ray' hp₁ = c.ray' hp₂ ↔ SameRay 𝕜 (c.vector_to p₁) (c.vector_to p₂) :=
+  ray_eq_iff (vsub_ne_zero.mpr hp₁) (vsub_ne_zero.mpr hp₂)
+
+/-- This is a restatement of `SameRay.exists_pos`. -/
+theorem ray_to_eq_iff_exists_pos (c : Cone 𝕜 V P) (hp₁ : p₁ ≠ c.vertex) (hp₂ : p₂ ≠ c.vertex) :
+    c.ray' hp₁ = c.ray' hp₂ ↔ ∃ (k : 𝕜), 0 < k ∧ k • (c.vector_to p₁) = c.vector_to p₂ := by
+  apply Iff.intro
+  · intro hreq; rw [ray_to_eq_iff_same_ray] at hreq
+    rcases SameRay.exists_pos hreq (c.vector_to_vertexC_neq_0 hp₁) (c.vector_to_vertexC_neq_0 hp₂) with ⟨k1, ⟨k2, ⟨h0k1, ⟨h0k2, hk1k2⟩⟩⟩⟩
+    use (k2⁻¹ * k1)
+    apply And.intro $ mul_pos (inv_pos.mpr h0k2) h0k1
+    have hh := congr_arg (fun v : V => k2⁻¹ • v) hk1k2; simp at hh; rw [smul_smul] at hh
+    rw [hh, smul_smul, mul_comm, Field.mul_inv_cancel, one_smul]
+    exact ne_of_gt h0k2
+  · rintro ⟨k, ⟨h0k, hkvp1p2⟩⟩
+    have hh : SameRay 𝕜 (c.vector_to p₁) (k • c.vector_to p₁):= SameRay.sameRay_pos_smul_right (c.vector_to p₁) h0k
+    rw [hkvp1p2] at hh
+    exact (c.ray_to_eq_iff_same_ray hp₁ hp₂).mpr hh
+
+/-- This is a restatement of `SameRay.ray_eq_iff`. -/
+theorem ray_to_eq_iff_same_ray' (c : Cone 𝕜 V P) (p₁ : c.vertexC) (p₂ : c.vertexC) :
+    c.ray_to'' p₁ = c.ray_to'' p₂ ↔ SameRay 𝕜 (c.vector_to p₁.val) (c.vector_to p₂.val) :=
+  ray_eq_iff (vsub_ne_zero.mpr p₁.property) (vsub_ne_zero.mpr p₂.property)
+
+/-- Different base points represent different rays. -/
+theorem ray_to_base_point_unique (c : Cone 𝕜 V P) (hb₁ : b₁ ∈ c.base) (hb₂ : b₂ ∈ c.base) :
+    b₁ = b₂ ↔ SameRay 𝕜 (c.vector_to b₁) (c.vector_to b₂) := by
+  have taux {b₁' b₂' : P} (hb₁' : b₁' ∈ c.base) (hb₂' : b₂' ∈ c.base) {k' : 𝕜}
+      (hk' : k' ∈ Set.Ioc (0:𝕜) 1) (h : k' • c.vector_to b₁' = c.vector_to b₂') : b₁' = b₂' := by
+    have h1 := c.vector_to_eq_iff_points_eq.mp $ Eq.trans (c.vector_to_lineMap_k b₁' k') h
+    have h2 : b₂' ∈ c.segmentOC hb₁' := by rw [←lineMap_Ioc_to_segmentOC]; simp only [Set.mem_image]; use k'
+    apply c.segmentOC_do_not_intersect hb₁' hb₂'
+    have h3 := (Set.mem_inter_iff b₂' (c.segmentOC hb₁') (c.segmentOC hb₂')).mpr ⟨h2, c.base_point_in_segmentOC hb₂'⟩
+    exact Set.not_empty_of_mem h3
+  constructor
+  · intro h; rw [h]
+  · intro h
+    rw [←c.ray_to_eq_iff_same_ray (c.base_point_neq_vertex hb₁) (c.base_point_neq_vertex hb₂)] at h
+    rw [c.ray_to_eq_iff_exists_pos (c.base_point_neq_vertex hb₁) (c.base_point_neq_vertex hb₂)] at h
+    rcases h with ⟨k, ⟨h0k, hkvb1b2⟩⟩
+    match lt_or_ge k 1 with
+    | Or.inl hk1 => exact taux hb₁ hb₂ ⟨h0k, le_of_lt hk1⟩ hkvb1b2
+    | Or.inr h1k =>
+      let hkvb1b2 := congr_arg (fun x : V => k⁻¹ • x) hkvb1b2
+      simp at hkvb1b2; rw [smul_smul, mul_comm, Field.mul_inv_cancel, one_smul] at hkvb1b2
+      have hk : k⁻¹ ∈ Set.Ioc (0:𝕜) 1 := by exact ⟨inv_pos.mpr h0k, inv_le_one h1k⟩
+      exact (taux hb₂ hb₁ hk hkvb1b2.symm).symm
+      exact ne_of_gt h0k
+
+/-- This is a restatement of the property `ray_to_base_point_unique`. -/
+theorem ray_to_injective_on_base (c : Cone 𝕜 V P) (hb₁ : b₁ ∈ c.base) (hb₂ : b₂ ∈ c.base) :
+    c.ray' (c.base_point_neq_vertex hb₁) = c.ray' (c.base_point_neq_vertex hb₂) ↔ b₁ = b₂ := by
+  unfold ray'; rw [ray_eq_iff]; exact (c.ray_to_base_point_unique hb₁ hb₂).symm
+
+/-- This is the set of rays running from the vertex to the base points. -/
+def rays (c : Cone 𝕜 V P) : Set (Module.Ray 𝕜 V) := { r : Module.Ray 𝕜 V | ∃ b : c.base, c.rayb b.property = r }
+
+/-- Rays through base points are in `rays`. -/
+theorem ray_to_base_point_in_rays (c : Cone 𝕜 V P) (hb : b ∈ c.base) :
+    c.ray' (c.base_point_neq_vertex hb) ∈ c.rays := by
+  unfold rays; simp only [Set.mem_setOf]; use ⟨b, hb⟩; rfl
+
+/-- Rays through base points are in `rays`. -/
+theorem ray_to_base_point_in_rays' (c : Cone 𝕜 V P) (hb : b ∈ c.base) :
+    c.rayb hb ∈ c.rays := by
+  unfold rays; simp only [Set.mem_setOf]; use ⟨b, hb⟩
+
+/-- Points in a segment from the vertex to a base point lie on the same ray
+as the base point. -/
+theorem point_on_lineMap_same_ray_as_base_point (c : Cone 𝕜 V P) (hb : b ∈ c.base) (h0k : (0:𝕜) < k) :
+    c.ray' (c.lineMap_k_neq_vertex (c.base_point_neq_vertex hb) h0k) = c.rayb hb := by
+  unfold rayb
+  rw [c.ray_to_eq_iff_exists_pos (c.lineMap_k_neq_vertex (c.base_point_neq_vertex hb) h0k) (c.base_point_neq_vertex hb)]
+  simp only [vector_to_lineMap_k]
+  use k⁻¹
+  apply And.intro $ inv_pos.mpr h0k
+  rw [smul_smul, mul_comm, Field.mul_inv_cancel, one_smul]
+  exact ne_of_gt h0k
+
+/-- Points in the carrier of an affine cone define rays. -/
+theorem point_in_carrier_defines_ray (c : Cone 𝕜 V P) (hpc : p ∈ c.carrier) (hpv : p ≠ c.vertex) :
+    c.ray' hpv ∈ c.rays := by
+  rcases c.point_in_carrier_on_lineMap hpc hpv with ⟨b, ⟨k, ⟨h0k, ⟨_, hlkp⟩⟩⟩⟩
+  have hrr : c.ray' hpv = c.ray' (c.lineMap_k_neq_vertex (c.base_point_neq_vertex b.property) h0k) := by
+    unfold ray_to; unfold vector_to; dsimp [lineMap, AffineMap.lineMap]; simp
+    dsimp [lineMap, AffineMap.lineMap] at hlkp
+    have x := congr_arg (fun q => q -ᵥ c.vertex) hlkp; simp at x
+    rw [ray_eq_iff, x]
+  rw [hrr, c.point_on_lineMap_same_ray_as_base_point b.property h0k]
+  exact c.ray_to_base_point_in_rays' b.property
+
+end Affine.Cone
+
+end «Cone rays»
+
+-- ********************************************************************
+section «Topology of ray spaces»
+
+/-!
+### Topology of ray spaces
+
+Mathlib's implementation of the ray-package is unsatisfactory in several
+ways:
+
+- The main map used to map from vectors to rays is `Module.rayOfNeZero`
+  which does not seem to conform the the usual naming conventions.
+- The proof that the quotiont map is surjective apppeals to the axiom
+  of choice, which is not necessary.
+
+TODO.  -/
+
+-- --------------------------------------------------------------------
+section «Definitions»
+
+/-- Class `OpenSMul 𝕜 V` says that the scalar multiplication `(•) : 𝕜 → V → V`
+is an open map in the second argument whenever the scalar is non-zero. -/
+class OpenSMul (𝕜 : Type u) (V : Type v) [Zero 𝕜] [SMul 𝕜 V] [TopologicalSpace V] : Prop where
+  /-- The scalar multiplication `(•)` is an open map. -/
+  open_smul (_ : k ≠ (0:𝕜)) : IsOpenMap fun v : V => k • v
+
+end «Definitions»
+
+-- --------------------------------------------------------------------
+section «Topology»
+
+variable {𝕜 : Type u} [StrictOrderedCommSemiring 𝕜]
+variable {V : Type v} [AddCommMonoid V] [Module 𝕜 V]
+
+namespace RayVector
+
+/-- The map from non-zero vectors to rays. -/
+def ray (v : RayVector 𝕜 V) : Module.Ray 𝕜 V := ⟦⟨v, (Set.mem_setOf.mp v.property)⟩⟧
+
+/-- The map from non-zero vectors to rays. -/
+def ray' {v : V} (hv : v ≠ 0) : Module.Ray 𝕜 V := ray ⟨v, hv⟩
+
+/-- Two ray-vector map to the same value under `RayVector.ray` iff they
+represent the same ray under `SameRay`. -/
+theorem ray_eq_iff_same_ray
+    {𝕜 : Type u} [StrictOrderedCommSemiring 𝕜]
+    {V : Type v} [AddCommMonoid V] [Module 𝕜 V]
+    (v : RayVector 𝕜 V) (w : RayVector 𝕜 V) :
+    RayVector.ray v = RayVector.ray w ↔ SameRay 𝕜 v.val w :=
+  Quotient.eq'
+
+/-- Two ray-vector map to the same value under `RayVector.ray` iff they
+represent the same ray under `SameRay`. -/
+theorem ray_eq_iff_same_ray'
+    {𝕜 : Type u} [StrictOrderedCommSemiring 𝕜]
+    {V : Type v} [AddCommMonoid V] [Module 𝕜 V]
+    {v w : V} (hv : v ≠ 0) (hw : w ≠ 0) :
+    RayVector.ray' hv = RayVector.ray' hw ↔ SameRay 𝕜 v w :=
+  Quotient.eq'
+
+end RayVector
+
+open RayVector
+
+namespace Ray
+
+/-- The map `ray` is surjective. -/
+theorem ray_surjective :
+    @Function.Surjective (RayVector 𝕜 V) (Module.Ray 𝕜 V) RayVector.ray := by
+  exact surjective_quotient_mk (RayVector.Setoid 𝕜 V)
+
+/-- The topology on the set of non-zero vectors is the induced topology. -/
+instance topologicalSpace [topV: TopologicalSpace V]
+    : TopologicalSpace (RayVector 𝕜 V) :=
+  TopologicalSpace.induced (fun v => v.val) topV
+
+/-- The topology of the ray-space is the quotient topology. -/
+instance topology [TopologicalSpace V]
+    : TopologicalSpace (Module.Ray 𝕜 V) := by
+  apply @TopologicalSpace.coinduced (RayVector 𝕜 V) (Module.Ray 𝕜 V)
+  exact ray
+  exact topologicalSpace
+
+/-- We note that `to_ray` is a quotient map. -/
+theorem to_ray_quotient_map [TopologicalSpace V]
+    : @QuotientMap (RayVector 𝕜 V) (Module.Ray 𝕜 V) topologicalSpace Ray.topology RayVector.ray := by
+  apply And.intro ray_surjective; rfl
+
+/-- The map `to_ray` is an open map provided scalar multiplication in the
+module is an open map. -/
+theorem to_ray_open_map
+    [TopologicalSpace 𝕜] [TopologicalSemiring 𝕜]
+    [TopologicalSpace V] [cSmul: ContinuousSMul 𝕜 V] [oSmul : OpenSMul 𝕜 V]
+    : @IsOpenMap (RayVector 𝕜 V) (Module.Ray 𝕜 V) topologicalSpace Ray.topology RayVector.ray := by
+  intro u hiou
+  suffices huo : IsOpen $ RayVector.ray ⁻¹' (RayVector.ray '' u) by exact huo
+  simp only [isOpen_induced_iff, Set.preimage, Set.image]
+  let o := { v : V | ∃ w ∈ u, SameRay 𝕜 w.val v}
+  use o
+  apply And.intro
+  · simp only [isOpen_induced_iff] at hiou; rcases hiou with ⟨u', ⟨hiou', _⟩⟩
+    let I := { rs : 𝕜 × 𝕜 // 0 < rs.1 ∧ 0 < rs.2 }
+    let oi' (rs : I) := (fun x => rs.val.2 • x) '' u'
+    let oi (rs : I) := (fun x : V => rs.val.1 • x) ⁻¹' (oi' rs)
+    have hoio' (rs : I) : IsOpen (oi' rs) := (oSmul.open_smul (ne_of_gt rs.property.2)) u' hiou'
+    have hci2 (rs : I) :  Continuous (fun x : V => rs.val.1 • x) := by
+      admit
+    have hoio (rs : I) : IsOpen (oi rs) := by exact Continuous.isOpen_preimage (hci2 rs) (oi' rs) (hoio' rs)
+    have huinon : o = ⋃ (rs : I), oi rs := by
+      ext v; apply Iff.intro
+      · rintro ⟨w, ⟨hwu, hsrwv⟩⟩
+        simp only [SameRay] at hsrwv
+        admit
+      · admit
+    rw [huinon]
+    exact isOpen_iUnion hoio
+  · simp only [Set.mem_setOf, ray_eq_iff_same_ray, o]
+
+end Ray
+
+end «Topology»
+
+-- ********************************************************************
+section «Rays, tangent space, structure»
+
+variable {𝕜 : Type u} [LinearOrderedField 𝕜] [TopologicalSpace 𝕜] [TopologicalRing 𝕜] [OrderClosedTopology 𝕜]
+variable {V : Type v} [AddCommGroup V] [Module 𝕜 V] [TopologicalSpace V] [ContinuousAdd V] [ContinuousSMul 𝕜 V]
+variable {P : Type w} [AddTorsor V P] [TopologicalSpace P] [TopologicalAddTorsor V P]
+
+open Affine.Cone
+
+namespace Affine.ConeNhd
+
+/-- Auxiliary result to prove the theorem `cone_nhds_have_same_rays`. -/
+private theorem cone_nhds_have_subset_rays (nhd1 : ConeNhd 𝕜 V P s) (nhd2 : ConeNhd 𝕜 V P s) :
+    nhd1.rays ⊆ nhd2.rays := by
+
+  -- Start with a ray of the first cone-neighbourhood
+  -- intro r1 hr1
+  -- simp only [ConeNhd.rays, Set.mem_setOf_eq] at hr1
+  -- rcases hr1 with ⟨b1, h_rb1_eq_r1⟩
+  -- -- Get a line segment for the ray
+  -- let f : 𝕜 →ᵃ[𝕜] P := nhd1.lineMap b1.property
+  -- have hfc0 : ContinuousAt f 0 := Continuous.continuous_at (nhd1.lineMap_continuous b1.property)
+  -- have hf0v : f 0 = nhd1.vertex := by simp [AffineMap.lineMap_apply_zero]
+  -- -- Find a point along the line that lies in the second cone neighbourhood
+  -- rcases nhd2.is_rel_nhd with ⟨u, hunhd, hunhd2⟩
+  -- have h_mem_u : nhd1.vertex ∈ u := by rwa ←hf0v at hunhd
+  -- -- Use the fact that u is a neighborhood of the vertex to find a positive real number ε such that all points on the line segment [0, ε] are in u
+  -- obtain ⟨ε, ε_pos, hε⟩ : ∃ ε > 0, ∀ x, x ∈ Ioc 0 ε → f x ∈ u :=
+  --   exists_Ioc_subset_of_mem_nhds hunhd hfc0
+  -- -- Use ε to construct a ray in the second neighborhood
+  -- let b2 := ⟨f ε, by { rw [←hf0v], apply hunhd2, use ε, split; try {linarith}, apply hε, simp }⟩
+  -- -- Show that this ray corresponds to the original ray in the first neighborhood, completing the proof
+  -- use b2
+  -- simp only [h_rb1_eq_r1, h_rb1_eq_r1.symm, AffineMap.lineMap_apply_module']
+  -- exact ⟨ε, ε_pos, by simp⟩
+  -- done
+
+  -- Start with a ray of the first cone-neighbourghood
+  --intro r1 hr1
+  -- simp only [Cone.rays, Set.mem_setOf] at hr1
+  -- rcases hr1 with ⟨b1, h_rb1_eq_r1⟩
+  -- -- Get a line segment for the ray
+  -- let f : 𝕜 →ᵃ[𝕜] P := nhd1.lineMap b1.property
+  -- have hfc0 : ContinuousAt f (0:𝕜) := Continuous.continuousAt Affine.lineMap_continuous
+  -- have hf0v : f (0:𝕜) = nhd2.vertex := by simp only [←heqv, f, Cone.lineMap, AffineMap.lineMap_apply_zero]
+  -- -- Find a point along the line that lies in the second cone neighbourhood
+  -- rcases nhd2.is_rel_nhd with ⟨u, ⟨hunhd, hunhd2⟩⟩
+  -- rw [←hf0v] at hunhd
+  -- rcases Ring.exists_elements_close_to_zero_for_map ndtR f hfc0 1 zero_lt_one u hunhd with ⟨k, ⟨h0k, ⟨hk1, hfku⟩⟩⟩
+  -- have hkIoo : k ∈ Ioo (0:𝕜) 1 := Set.mem_Ioo.mpr ⟨h0k, hk1⟩
+  -- have hkIcc : k ∈ Icc (0:𝕜) 1 := Set.Ioo_subset_Icc_self hkIoo
+  -- -- The point is found, now show it lies in the right sets
+  -- have hfknhd1 : f k ∈ nhd1.carrier := nhd1.lineMap_maps_to_carrier b1.property hkIcc
+  -- have h_fk_neq_v1 : f k ≠ nhd1.vertex := nhd1.lineMap_k_neq_vertex b1.property h0k
+  -- have hfks : f k ∈ s := nhd1.subset_set hfknhd1
+  -- have hfknhd2 : f k ∈ nhd2.carrier := mem_of_mem_of_subset (mem_inter hfku hfks) hunhd2
+  -- have h_fk_neq_v2 : f k ≠ nhd2.vertex := by rw [←heqv]; exact h_fk_neq_v1
+  -- -- Now argue with rays
+  -- have h_rfk_eq_rb1 := nhd1.point_on_lineMap_same_ray_as_base_point b1.property h0k
+  -- have h_r1_eq_rfk := Eq.trans h_rb1_eq_r1.symm h_rfk_eq_rb1.symm
+  -- have h_rfk_nhd1_nhd2 := nhd1.ray_to_independent_of_cone nhd2 heqv h_fk_neq_v1
+  -- let r2 := nhd2.ray_to h_fk_neq_v2
+  -- have hr2inr2 := nhd2.point_in_carrier_defines_ray hfknhd2 h_fk_neq_v2
+  admit
+
+/-- Two cone-neighbourhoods centred on the same vertex have identical rays. -/
+theorem cone_nhds_have_same_rays (nhd1 : ConeNhd 𝕜 V P s) (nhd2 : ConeNhd 𝕜 V P s) :
+    nhd1.rays = nhd2.rays :=
+  Set.eq_of_subset_of_subset (cone_nhds_have_subset_rays nhd1 nhd2 ) (cone_nhds_have_subset_rays nhd2 nhd1)
+
+-- --------------------------------------------------------------------
+
+/--
+TODO Define the tangent-rays of a ConeNhd and show that this is a closed set. -/
+example : 1=1 := rfl
+
+/--
+TODO Define the tangent-space of a ConeNhd and show that this is a closed set. -/
+example : 1=1 := rfl
+
+/--
+TODO Can we show some upper semicontiuity for the tangent space? Move this to polyhedra section. -/
+example : 1=1 := rfl
+
+end Affine.ConeNhd
+
+end «Rays, tangent space, structure»
+
+
+-- ********************************************************************
+
+-- ********************************************************************
