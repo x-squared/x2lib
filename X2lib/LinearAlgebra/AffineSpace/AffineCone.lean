@@ -3,25 +3,13 @@ Copyright (c) 2024 Stephan Maier. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Stephan Maier
 -/
-import Mathlib.Data.Set.Image
-import Mathlib.Data.Set.Subset
---import Mathlib.Order.SetNotation
-import Mathlib.Algebra.AddTorsor
-import Mathlib.Algebra.Module.Basic
-import Mathlib.Algebra.Order.Ring.Defs
-import Mathlib.Algebra.Order.Field.Defs
---import Mathlib.Topology.Algebra.Affine
-import Mathlib.LinearAlgebra.AffineSpace.Basic
-import Mathlib.LinearAlgebra.AffineSpace.AffineMap
-import Mathlib.LinearAlgebra.AffineSpace.AffineSubspace
-import Mathlib.LinearAlgebra.Ray
-import Mathlib.LinearAlgebra.Dimension.Finrank
+import Mathlib
 
-import X2lib.Topology.PiecewiseLinear.Aux.Set
-import X2lib.Topology.PiecewiseLinear.Aux.Affine
-import X2lib.Topology.PiecewiseLinear.Aux.Module
-import X2lib.Topology.PiecewiseLinear.Aux.LinearAlgebra
-import X2lib.Topology.PiecewiseLinear.AffineJoin
+import X2lib.Aux.Set
+import X2lib.Aux.Affine
+import X2lib.Aux.Module
+
+import X2lib.LinearAlgebra.AffineSpace.AffineJoin
 
 /-!
 # Joins and cones
@@ -117,6 +105,14 @@ structure IsCone (vertex : P) (base : Set P) : Prop where
 
 end Affine
 
+namespace Set
+
+/-- A set is an affine cone...
+TODO. -/
+structure IsConeCarrier (s : Set P) (vertex : P) : Prop where
+
+end Set
+
 end «Affine Cone Def»
 
 -- ********************************************************************
@@ -151,6 +147,7 @@ namespace Affine.Cone
 
 -- -------------------------------------------------------------------
 section «Affine cone equality»
+
 /-!
 ### Equality of joins
 
@@ -198,6 +195,7 @@ end «Affine cone equality»
 
 /- ---------- Join ------------------------------------------------- -/
 section «Affine cone is join»
+
 /-!
 ### Affine cones are affine joins
 
@@ -272,6 +270,7 @@ end «Affine cone is join»
 
 /- ---------- Sets ------------------------------------------------------ -/
 section «Affine cone sets»
+
 /-!
 ### Sets of cones
 
@@ -542,7 +541,7 @@ section «Cone vector-map and lineMap»
 In this section we look at the lines defined by the vertex and base-points.
 These lines are essential in analysing affine cones in a topological
 setting.
- -/
+-/
 
 variable {𝕜 : Type u} [LinearOrderedField 𝕜]
 variable {V : Type v} [AddCommGroup V] [Module 𝕜 V]
@@ -680,7 +679,38 @@ end Affine.Cone
 end «Cone vector-map and lineMap»
 
 -- ********************************************************************
-section «Tangent spaces»
+section «Convex sets»
+
+/-!
+## Relation to convex sets
+-/
+
+variable {𝕜 : Type u} [LinearOrderedField 𝕜]
+variable {V : Type v} [AddCommGroup V] [Module 𝕜 V]
+variable {P : Type w} [AddTorsor V P]
+
+namespace Affine.Cone
+
+
+/-- A `IsStarConvex` set is an affine cone...
+TODO. -/
+theorem starConvex_is_cone (hs : Affine.IsStarConvex 𝕜 P p s) :
+    IsCone 𝕜 V P p hs.base := by
+  admit
+
+/-- The intersection of an affine cone with a `IsStarConvex` set centred
+at the vertex of the cone is again an affine cone. The base is the
+intersection of the cone's base with the star-convex set. -/
+theorem inter_starConvex (c : Cone 𝕜 V P) (hs : Affine.IsStarConvex 𝕜 P c.vertex s) :
+    IsCone 𝕜 V P c.vertex (s ∩ c.carrier) := by
+  admit
+
+end Affine.Cone
+
+end «Convex sets»
+
+-- ********************************************************************
+section «Spanned spaces»
 
 /-!
 ## The tangent space and the affine subspaces defined by cones
@@ -906,7 +936,7 @@ def IsFold (c : Cone 𝕜 V P) : Prop := ∃ sm : Submodule 𝕜 V, c.leaves = {
 
 end Affine.Cone
 
-end «Tangent spaces»
+end «Spanned spaces»
 
 -- ********************************************************************
 section «Join under affine maps»

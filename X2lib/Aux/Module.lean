@@ -3,22 +3,7 @@ Copyright (c) 2024 Stephan maier. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Stephan Maier
 -/
-import Mathlib.Data.Set.Image
-import Mathlib.Data.Quot
-import Mathlib.LinearAlgebra.AffineSpace.Basic
-import Mathlib.LinearAlgebra.AffineSpace.AffineMap
-import Mathlib.Algebra.AddTorsor
-import Mathlib.Algebra.Module.Basic
-import Mathlib.Analysis.Convex.Segment
-import Mathlib.Analysis.Convex.Between
-import Mathlib.Topology.Defs.Basic
-import Mathlib.Topology.Defs.Induced
-import Mathlib.Topology.ContinuousFunction.Basic
-import Mathlib.Topology.Homeomorph
-import Mathlib.Topology.Algebra.Ring.Basic
-import Mathlib.Topology.Algebra.Module.Basic
-import Mathlib.Topology.Algebra.Affine
-import Mathlib.Topology.Algebra.MulAction
+import Mathlib
 
 /-!
 # Auxiliary results for modules
@@ -28,14 +13,10 @@ This file extends contains auxiliary results for modules.
 
 -- ********************************************************************
 section «Submodules»
-/-!
-## Submodules
-
-. -/
 
 namespace Submodule
 
-/-- A submodule is cofonite iff the quotient by the submodule is finite. -/
+/-- A submodule is cofinite iff the quotient by the submodule is finite. -/
 def IsCofinite
   {R : Type u} [Ring R]
   {M : Type v} [AddCommGroup M] [Module R M]
@@ -71,4 +52,42 @@ end Submodule
 end «Submodules»
 
 -- ********************************************************************
-#lint
+section «Finite dimensional spaces»
+
+/-- In a finite dimensional vector space each set of linear subspaces
+has maximal elements. -/
+theorem Module.exists_max_submodule
+    {𝕜 : Type u} [DivisionRing 𝕜]
+    {V : Type v} [AddCommGroup V] [Module 𝕜 V] [FiniteDimensional 𝕜 V]
+    (sms : Set (Submodule 𝕜 V)) (hsmne : sms.Nonempty) :
+    ∃ sm ∈ sms, ∀ sm', sm' ∈ sms → sm ≤ sm' → sm = sm' := by
+  let fdim := (fun s : Submodule 𝕜 V => Module.finrank 𝕜 s)
+  let dims : Set ℕ := fdim '' sms
+  have h : dims.Nonempty := by exact Set.Nonempty.image fdim hsmne
+  have h0 : ∀ d ∈ dims, d <= Module.finrank 𝕜 V := by
+    intro d hd; rcases (Set.mem_image fdim sms d).mp hd with ⟨sd, ⟨_, fdimsdd⟩⟩
+    rw [←fdimsdd]; exact Submodule.finrank_le sd
+  let s := { n | n <= Module.finrank 𝕜 V }
+  have h1 : s.Finite := by exact Set.finite_le_nat $ Module.finrank 𝕜 V
+  have h2 : dims ⊆ s := by intro m hm; rw [Set.mem_setOf]; exact h0 m hm
+  have : dims.Finite := by exact Set.Finite.subset h1 h2
+  have : ∃ n ∈ dims, ∀ n' ∈ dims, n' ≤ n := by
+    rcases Set.Finite.exists_maximal_wrt id dims this h with ⟨n, ⟨hndims, hn⟩⟩
+    dsimp at hn; use n; apply And.intro hndims; intro n' hn'
+    by_contra hc; simp only [Nat.gt_of_not_le] at hc
+    have ha := hn n' hn' $ le_of_lt $ Nat.gt_of_not_le hc
+    have hb := (ne_of_gt $ Nat.gt_of_not_le hc).symm
+    contradiction
+  rcases this with ⟨n, ⟨hndims, hnmax⟩⟩
+  rcases (Set.mem_image fdim sms n).mp hndims with ⟨sm, ⟨hsms, fdimsmn⟩⟩
+  use sm
+  apply And.intro hsms
+  intro sm' hsm' hsmsm'
+  have : fdim sm' ≤ fdim sm := by
+    rw [fdimsmn]
+    exact hnmax (fdim sm') (Set.mem_image_of_mem fdim hsm')
+  exact Submodule.eq_of_le_of_finrank_le hsmsm' this
+
+  end «Finite dimensional spaces»
+
+-- ********************************************************************

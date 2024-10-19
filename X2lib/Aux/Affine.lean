@@ -3,49 +3,13 @@ Copyright (c) 2024 Stephan maier. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Stephan Maier
 -/
-import Mathlib.Data.Set.Image
-import Mathlib.Data.Finset.Basic
-import Mathlib.LinearAlgebra.AffineSpace.Basic
-import Mathlib.LinearAlgebra.AffineSpace.AffineMap
-import Mathlib.LinearAlgebra.AffineSpace.AffineSubspace
-import Mathlib.Algebra.AddTorsor
-import Mathlib.Algebra.Module.Basic
-import Mathlib.Analysis.Convex.Segment
-import Mathlib.Analysis.Convex.Between
-import Mathlib.Topology.Defs.Basic
-import Mathlib.Topology.Defs.Filter
-import Mathlib.Topology.Defs.Induced
-import Mathlib.Topology.ContinuousFunction.Basic
-import Mathlib.Topology.Homeomorph
-import Mathlib.Topology.Algebra.Ring.Basic
-import Mathlib.Topology.Algebra.Module.Basic
-import Mathlib.Topology.Algebra.Affine
-import Mathlib.Topology.Algebra.ContinuousAffineMap
-import Mathlib.Topology.Algebra.MulAction
-import Mathlib.Topology.Algebra.Order.Compact
-
-import X2lib.Topology.PiecewiseLinear.Aux.Set
-import X2lib.Topology.PiecewiseLinear.Aux.Module
+import Mathlib
 
 /-!
-# Foos and bars
+# Auxiliary results for affine spaces
 
-In this file we introduce `foo` and `bar`,
-two main concepts in the theory of xyzzyology.
+This file extends contains auxiliary results for affine spaces.
 
-## Main results
-
-- `exists_foo`: the main existence theorem of `foo`s.
-- `bar_of_foo`: a construction of a `bar`, given a `foo`.
-- `bar_eq`    : the main classification theorem of `bar`s.
-
-## Notation
-
- - `|_|` : The barrification operator, see `bar_of_foo`.
-
-## References
-
-See [Thales600BC] for the original account on Xyzzyology.
 -/
 
 universe u v w u' v' w'
@@ -309,7 +273,13 @@ section «TopologicalAddTorsor»
 /-!
 ## Affine Topological add torsors
 
-TODO
+Mathlib seems not to define topological add-torsors (affine spaces
+with a topology that respects the operatons `vadd` and `vsub`).
+
+The library `Mathlib.Analysis.Normed.Group.AddTorsor` contains a
+theorem `continuous_vsub` which makes assumptions on the spaces involved,
+but there is no a priori definition. This is compensated for in
+this file.
 -/
 
 variable (𝕜 : Type u) [Ring 𝕜]
@@ -317,14 +287,12 @@ variable (V : Type v) [AddCommGroup V] [Module 𝕜 V] [TopologicalSpace V]
 variable (P : Type w) [AddTorsor V P] [TopologicalSpace P]
 
 /-- Class `ContinuousVSub M X` says that the subtraction action `(-ᵥ) : M → X → X`
-is continuous in both arguments.
-Note: This seems to be missing from Mathlib as on May 2024. -/
+is continuous in both arguments. -/
 class ContinuousVSub : Prop where
   /-- The difference-action `(-ᵥ)` is continuous. -/
   continuous_vsub : Continuous fun p : P × P => p.1 -ᵥ p.2
 
-/-- The following puts the right topology on affine spaces.
-Note: This seems to be missing from Mathlib as on May 2024. -/
+/-- The following puts the right topology on affine spaces. -/
 class TopologicalAddTorsor extends ContinuousVAdd V P, ContinuousVSub V P : Prop
 
 end «TopologicalAddTorsor»
@@ -333,16 +301,18 @@ end «TopologicalAddTorsor»
 section «AffineSubspace»
 
 /-!
-## Affine Topological add torsors
+## Topology of affine subspaces
 
-TODO
+Affine subspaces are furnished with the relative topology. This is
+not contained in Mathlib yet.
 -/
 
 variable (𝕜 : Type u) [Ring 𝕜]
 variable {V : Type v} [AddCommGroup V] [Module 𝕜 V]
 variable (P : Type w) [AddTorsor V P] [TopologicalSpace P]
 
-/- Affine subspaces are furnished with the relative topology. -/
+/-- Affine subspaces are furnished with the relative topology. This is
+not contained in Mathlib yet. -/
 instance AffineSubspace.instTopologicalSpace (a : AffineSubspace 𝕜 P) [Nonempty ↥a] : TopologicalSpace a :=
   TopologicalSpace.induced a.subtype inferInstance
 
@@ -577,7 +547,6 @@ end AffineMap
 
 end «Homothety»
 
-
 -- ********************************************************************
 section «AffineSubspace»
 
@@ -588,7 +557,7 @@ variable (𝕜 : Type u) [Ring 𝕜]
 variable {V : Type v} [AddCommGroup V] [Module 𝕜 V]
 variable (P : Type w) [AddTorsor V P]
 
-/-- . The condition for a set to be an affine subspace. -/
+/-- The condition for a set to be an affine subspace. -/
 structure IsAffineSubspace (carrier : Set P): Prop where
   smul_vsub_vadd_mem :
     ∀ (c : 𝕜) {p1 p2 p3 : P},
@@ -696,25 +665,37 @@ variable {𝕜 : Type u} [OrderedCommRing 𝕜]
 variable {V : Type v} [AddCommGroup V] [Module 𝕜 V]
 variable {P : Type w} [AddTorsor V P]
 
+namespace IsStarConvex
+
+/-- The base of a star-convex set is the set of points that lie at
+the end of a line that emenates from the vertex. -/
+def base (hs : IsStarConvex 𝕜 P v s) : Set P := by admit
+
 /-- Star-Conxity is stable under finite intersectiion. -/
-theorem IsStarConvex.inter (v : P) (s0 s1 : Set P)
+theorem inter (v : P) (s0 s1 : Set P)
     (hs0 : IsStarConvex 𝕜 P p s0) (hs1 : IsStarConvex 𝕜 P p s1) : IsStarConvex 𝕜 P p (s0 ∩ s1) := by
   admit
 
 /-- Star-Conxity is stable under any intersectiion. -/
-theorem IsStarConvex.iInter (v : P) (s : ι → Set P)
+theorem iInter (v : P) (s : ι → Set P)
     (hs : ∀ i : ι, IsStarConvex 𝕜 P p (s i)) : IsStarConvex 𝕜 P p (⋂ i : ι, s i) := by
   admit
 
+end IsStarConvex
+
+namespace IsConvex
+
 /-- Conxity is stable under finite intersectiion. -/
-theorem IsConvex.inter (s0 s1 : Set P)
+theorem inter (s0 s1 : Set P)
     (hs0 : IsConvex 𝕜 P s0) (hs1 : IsConvex 𝕜 P s1) : IsConvex 𝕜 P (s0 ∩ s1) := by
   admit
 
 /-- Conxity is stable under any intersectiion. -/
-theorem IsConvex.iInter (v : P) (s : ι → Set P)
+theorem iInter (v : P) (s : ι → Set P)
     (hs : ∀ i : ι, IsConvex 𝕜 P (s i)) : IsConvex 𝕜 P (⋂ i : ι, s i) := by
   admit
+
+end IsConvex
 
 end «Properties»
 

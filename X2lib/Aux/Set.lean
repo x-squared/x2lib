@@ -10,22 +10,10 @@ import Mathlib.Order.Interval.Set.Basic
 /-!
 # Set theory
 
-TODO
-
-## Main results
-
-- `exists_foo`: the main existence theorem of `foo`s.
-
-## Notation
-
- - `|_|` : The barrification operator, see `bar_of_foo`.
-
-## References
-
-See [Thales600BC] for the original account on Xyzzyology.
+This file collects theorems on sets that seem to be missing in Mathlib,
+or that extend Mathlib's Set-capabilities.
 -/
 
-universe u v w
 open Set
 
 -- ********************************************************************
@@ -36,15 +24,17 @@ section «Missing theorems»
 
 namespace Set
 
-/-- In Mathlib, `Set.inter_subset` and `Set.union_subset` have different
-shape. We need the shape of `Set.union_subset` so we provide it here. -/
+/-- In Mathlib, `Set.inter_subset` and `Set.union_subset` do not behave
+in the same way even though they have names that suggest they should be
+theorems with a similar structure. We need the shape of `Set.union_subset`
+so we provide it here. -/
 theorem inter_subset' {s s' t : Set α} (hs : s ⊆ t) (hs' : s' ⊆ t) : s ∩ s' ⊆ t := by
   rw [←inter_self t]
   apply inter_subset_inter
   exact hs
   exact hs'
 
-/-- Mathlib does not provide set-opertions relative to a set.-/
+/-- Mathlib does not provide set-operations relative to a set.-/
 theorem rel_compl_inj_iff {s s' t : Set α} : s ∩ t = s' ∩ t ↔ sᶜ ∩ t = s'ᶜ ∩ t := by
   have h1 (u : Set α) : (u ∩ t) ∪ (uᶜ ∩ t) = t := by
     rw [←union_inter_distrib_right, union_compl_self, univ_inter]
@@ -57,12 +47,18 @@ theorem rel_compl_inj_iff {s s' t : Set α} : s ∩ t = s' ∩ t ↔ sᶜ ∩ t 
     --rw [not_mem_of_mem_compl] at hxsc
   admit
 
-@[simp] theorem singleton_coe {y : α} (x : ({ y } : Set α)) : ↑x = y := by
-  exact Set.eq_of_mem_singleton $ Subtype.mem x
+/-- This coerces a witness for a singleton to the element defining the
+singleton. -/
+@[simp] theorem singleton_coe {y : α} (x : ({ y } : Set α)) : ↑x = y :=
+  Set.eq_of_mem_singleton $ Subtype.mem x
 
+/--
+TODO Check if necessary. -/
 @[simp] theorem not_empty_of_mem {s : Set α} (hx : x ∈ s) : s ≠ ∅ := by
   rw [←Set.nonempty_iff_ne_empty]; exact Set.nonempty_of_mem hx
 
+/--
+TODO Check if necessary. -/
 @[simp] theorem image_eq_not_empty {α β} {f : α → β} {s : Set α} :
     f '' s ≠ ∅ ↔ s ≠ ∅ := by
   apply Iff.ne
@@ -84,6 +80,13 @@ theorem rel_compl_inj_iff {s s' t : Set α} : s ∩ t = s' ∩ t ↔ sᶜ ∩ t 
   exact ne_of_gt (Set.mem_Ioo.mp hk).left
 
 end Set
+
+end «Missing theorems»
+
+-- ********************************************************************
+section «Function»
+
+/- ---------- Init.Prelude -------------------- -/
 
 namespace Function
 
@@ -112,15 +115,13 @@ theorem neq_const_iff_exists [hne : Nonempty α] (f : α → β) :
 
 end Function
 
-end «Missing theorems»
+end «Function»
 
 -- ********************************************************************
 section «Subset relations»
 
 /-!
 ### Subset relations
-
-TODO Discuss this and compare to mathlib approach.
 
 To do topology, we need to be able to move  between different points of
 view. For example, we must, depending on the question we look at, view
@@ -142,10 +143,10 @@ scoped[Set] notation "rel[" t "] " hst:100 => @rel_set_of _ _ t hst
 /-- An element of `rel[t] _` is an element of the set. -/
 theorem mem_rel_set_of {s t : Set α} (hst : s ⊆ t) :
     ∀ x : t, x ∈ (rel[t] hst) ↔  (x : α) ∈ s := by
-  intro x; rw [rel_set_of, mem_setOf]; done
+  intro x; rw [rel_set_of, mem_setOf]
 
 /-- Subset-realtion and `rel[_]` commute. -/
-theorem  rel_set_of_subset_comm {s t : Set α} (hst : s ⊆ t) (hst' : s' ⊆ t) :
+theorem rel_set_of_subset_comm {s t : Set α} (hst : s ⊆ t) (hst' : s' ⊆ t) :
     (rel[t] hst) ⊆ (rel[t] hst') ↔ s ⊆ s' := by
   unfold rel_set_of; rw [subset_def, subset_def]; constructor
   . intro h x hx; specialize h ⟨x, mem_of_subset_of_mem hst hx⟩; simp at h; exact h hx
@@ -157,7 +158,6 @@ theorem rel_set_of_subtype {s t : Set α} (hst : s ⊆ t) :
   ext x; rw [mem_image]; simp only [mem_rel_set_of hst]; constructor
   . rintro ⟨x', ⟨hxs', hxx'⟩⟩; rw [hxx'] at hxs'; exact hxs'
   . intro hxs; use ⟨x, mem_of_subset_of_mem hst hxs⟩
-  done
 
 /-- This shows how a subset relation is translated by `rel[_]`. -/
 theorem rel_set_of_trans {s t u : Set α} (hst : s ⊆ t) (htu : t ⊆ u) :
@@ -167,7 +167,6 @@ theorem rel_set_of_trans {s t u : Set α} (hst : s ⊆ t) (htu : t ⊆ u) :
   intro x
   rw [mem_setOf, mem_setOf]
   exact mem_of_subset_of_mem hst
-  done
 
 /-- If `Set.as_set_of` is applied through a set of two inclusions, the result
 equals the image of `Set.as_set_of` under `Set.inclusion`. -/
@@ -180,7 +179,6 @@ theorem rel_set_of_trans_inclusion {s t u : Set α} (hst : s ⊆ t) (htu : t ⊆
     rw [Subtype.mk_eq_mk] at hyx
     rw [←hyx]
     assumption
-  done
 
 /-- Given a subset, and a global property, the relative set defined
 in the subset by this property is equal to the intersection of the
@@ -206,17 +204,17 @@ theorem  rel_set_of_eq_comm {s t : Set α} (hst : s ⊆ t) (hst' : s' ⊆ t) :
 under the map `Subtype.val`. -/
 theorem rel_set_of_eq_preimage_subtype_val {s t : Set α} (hst : s ⊆ t) :
     rel_set_of hst = ( @Subtype.val _ t : t → α ) ⁻¹'  s := by
-  ext x; rw [mem_preimage, mem_rel_set_of]; done
+  ext x; rw [mem_preimage, mem_rel_set_of]
 
 /-- Talking union and `rel[_]` commute. -/
 theorem  rel_set_of_union_comm {s s' t : Set α} (hst : s ⊆ t) (hst' : s' ⊆ t) :
     (rel[t] union_subset hst hst') = rel[t] hst ∪ rel[t] hst' := by
-  ext x; simp only [mem_rel_set_of, mem_union]; done
+  ext x; simp only [mem_rel_set_of, mem_union]
 
 /-- Talking intersection and `rel[_]` commute. -/
 theorem  rel_set_of_inter_comm {s s' t : Set α} (hst : s ⊆ t) (hst' : s' ⊆ t) :
     (rel[t] inter_subset' hst hst') = rel[t] hst ∩ rel[t] hst' := by
-  ext x; simp only [mem_rel_set_of, inter_def, mem_setOf]; done
+  ext x; simp only [mem_rel_set_of, inter_def, mem_setOf]
 
 /-- Talking complements and `rel[_]` commute. -/
 theorem  rel_set_of_compl_comm {s t : Set α} (hst : s ⊆ t) :
@@ -228,7 +226,6 @@ theorem  rel_set_of_disjoint_comm {s s' t : Set α} (hst : s ⊆ t) (hst' : s' �
     Disjoint (rel[t] hst) (rel[t] hst') ↔ Disjoint s s' := by
   rw [disjoint_iff_inter_eq_empty, disjoint_iff_inter_eq_empty]
   rw [←rel_set_of_inter_comm, ←rel_set_of_empty, rel_set_of_eq_comm]
-  done
 
 /- ---------- From -------------------------------- -/
 
@@ -246,7 +243,6 @@ theorem from_set_to_subset {t : Set α} (s : Set t) :
   intro x; rintro ⟨x', ⟨_, hxx'⟩⟩
   rw [←hxx']
   exact x'.property
-  done
 
 /-- Notation for `Set.from_set_of_subset`. -/
 scoped[Set] notation "from'[" t "] " s:100 => @from_set_to_subset _ t s
@@ -259,7 +255,7 @@ theorem  from_set_union_comm {t : Set α} (s s' : Set t) :
 /-- Talking intersection and `from[_]` commute. -/
 theorem  from_set_inter_comm {s s' t : Set α} (hst : s ⊆ t) (hst' : s' ⊆ t) :
     (rel[t] inter_subset' hst hst') = rel[t] hst ∩ rel[t] hst' := by
-  ext x; simp only [mem_rel_set_of, inter_def, mem_setOf]; done
+  ext x; simp only [mem_rel_set_of, inter_def, mem_setOf]
 
 /-- Talking complements and `from[_]` commute. -/
 theorem  from_set_compl_comm {t : Set α} (s : Set t) :
@@ -297,7 +293,6 @@ theorem rel_set_of_from_set_of_eq_id {t : Set α} (s : Set t) :
     rw [this]
     assumption
   . intro hxs; use x
-  done
 
 /-- Two subset of a given enclosing set are equal relativ to the enclosing set
 they are equal as sets. -/
@@ -314,7 +309,6 @@ theorem set_eq_iff_rel_set_eq {s s' t : Set α} (hst : s ⊆ t) (hst' : s' ⊆ t
     . intro hxs'
       have := congr_fun hss' ⟨x, mem_of_subset_of_mem hst' hxs'⟩
       exact this.mpr hxs'
-  done
 
 /-- Two subsets of a type that is itself a set are equal iff they are
 equal as subset of the entire space. -/

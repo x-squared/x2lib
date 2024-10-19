@@ -4,11 +4,8 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Stephan Maier
 -/
 
-import Mathlib.Topology.Defs.Basic
-import Mathlib.Topology.Defs.Induced
-import Mathlib.Topology.Homeomorph
-
-import X2lib.Topology.PiecewiseLinear.Aux.Set
+import Mathlib
+import X2lib.Aux.Set
 
 /-!
 # Topology for PL-topology
