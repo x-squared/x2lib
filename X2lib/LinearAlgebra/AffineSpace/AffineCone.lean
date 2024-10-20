@@ -679,37 +679,6 @@ end Affine.Cone
 end «Cone vector-map and lineMap»
 
 -- ********************************************************************
-section «Convex sets»
-
-/-!
-## Relation to convex sets
--/
-
-variable {𝕜 : Type u} [LinearOrderedField 𝕜]
-variable {V : Type v} [AddCommGroup V] [Module 𝕜 V]
-variable {P : Type w} [AddTorsor V P]
-
-namespace Affine.Cone
-
-
-/-- A `IsStarConvex` set is an affine cone...
-TODO. -/
-theorem starConvex_is_cone (hs : Affine.IsStarConvex 𝕜 P p s) :
-    IsCone 𝕜 V P p hs.base := by
-  admit
-
-/-- The intersection of an affine cone with a `IsStarConvex` set centred
-at the vertex of the cone is again an affine cone. The base is the
-intersection of the cone's base with the star-convex set. -/
-theorem inter_starConvex (c : Cone 𝕜 V P) (hs : Affine.IsStarConvex 𝕜 P c.vertex s) :
-    IsCone 𝕜 V P c.vertex (s ∩ c.carrier) := by
-  admit
-
-end Affine.Cone
-
-end «Convex sets»
-
--- ********************************************************************
 section «Spanned spaces»
 
 /-!
@@ -881,7 +850,7 @@ theorem leaves_not_empty_if_finite (c : Cone 𝕜 V P)
     [hf : IsFinite c] : c.leaves.Nonempty := by
   let sms := { sm : Submodule 𝕜 c.spanned_submodule | sm.carrier ⊆ Submodule.subtype c.spanned_submodule ⁻¹' c.fan }
   have hne : Submodule.trivial ∈ sms := by admit
-  have h2 := FiniteDimensional.exists_max_submodule sms $ (Set.nonempty_of_mem hne)
+  have h2 := Module.exists_max_submodule sms $ (Set.nonempty_of_mem hne)
   rcases h2 with ⟨sm, ⟨hsm, hsmmax⟩⟩
   let smv := sm.map $ Submodule.subtype c.spanned_submodule
   have h3 : smv.carrier ⊆ c.fan := by admit
@@ -1118,6 +1087,9 @@ variable {P : Type w} [AddTorsor V P]
 namespace Affine.Cone
 
 -- -------------------------------------------------------------------
+/-!
+### Sub-cones
+-/
 
 /-- Taking a subset of the base yields a cone. -/
 def subcone (c : Cone 𝕜 V P) (hbs : bs ⊆ c.base) : Cone 𝕜 V P where
@@ -1146,6 +1118,9 @@ theorem subcone_subset_cone (c : Cone 𝕜 V P) (hbs : bs ⊆ c.base) :
   use ⟨b, Set.mem_of_subset_of_mem hbs hb⟩
 
 -- -------------------------------------------------------------------
+/-!
+### Intersection of cones
+-/
 
 /-- This defines the base of the intersection of two affine cones. Note that
 the sets are chosen mutually disjoint. -/
@@ -1183,7 +1158,6 @@ def inter (c c' : Cone 𝕜 V P) (hv : c.vertex = c'.vertex) : Cone 𝕜 V P whe
   vertex_not_in_base := (c.vertex_not_in_inter_base c' hv).left
   lines_intersect_eq_base_points := by
     intro b1 b2 hb1 hb2 hi
-
     admit
 
 /-- The vertex of the intersection of two affine cones is the vertex of the
@@ -1236,6 +1210,43 @@ theorem inter_subset_cone (c c' : Cone 𝕜 V P) (hv : c.vertex = c'.vertex) :
 end Affine.Cone
 
 end «Cone set operations»
+
+-- -------------------------------------------------------------------
+section «Convex sets»
+
+/-!
+### Relation to convex sets
+
+Sets that satisfiy `IsStarConvex` are affine connes provided they
+are bounded.
+TODO Introduce the notion of bounded star convex sets.
+-/
+
+variable {𝕜 : Type u} [LinearOrderedField 𝕜]
+variable {V : Type v} [AddCommGroup V] [Module 𝕜 V]
+variable {P : Type w} [AddTorsor V P]
+
+namespace Affine
+
+/-- A `IsStarConvex` set is an affine cone... -/
+theorem starConvex_is_cone (hs : IsStarConvex 𝕜 P p s) :
+    IsCone 𝕜 V P p hs.base := by
+  admit
+
+end Affine
+
+namespace Affine.Cone
+
+/-- The intersection of an affine cone with a `IsStarConvex` set centred
+at the vertex of the cone is again an affine cone. The base is the
+intersection of the cone's base with the star-convex set. -/
+theorem inter_starConvex (c : Cone 𝕜 V P) (hs : IsStarConvex 𝕜 P c.vertex s) :
+    IsCone 𝕜 V P c.vertex (s ∩ c.carrier) := by
+  admit
+
+end Affine.Cone
+
+end «Convex sets»
 
 -- ********************************************************************
 --#lint

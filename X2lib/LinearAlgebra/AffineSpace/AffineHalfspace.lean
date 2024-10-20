@@ -3,27 +3,11 @@ Copyright (c) 2024 Stephan Maier. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Stephan Maier
 -/
-import Mathlib.Data.Set.Image
-import Mathlib.Data.Set.Subset
-import Mathlib.Order.SetNotation
-import Mathlib.Algebra.AddTorsor
-import Mathlib.Algebra.Module.Basic
-import Mathlib.Algebra.Order.Ring.Defs
-import Mathlib.Algebra.Order.Field.Defs
-import Mathlib.Algebra.Group.Action.Opposite
-import Mathlib.Topology.Algebra.Affine
-import Mathlib.LinearAlgebra.AffineSpace.Basic
-import Mathlib.LinearAlgebra.AffineSpace.AffineMap
-import Mathlib.LinearAlgebra.AffineSpace.AffineSubspace
-import Mathlib.LinearAlgebra.Ray
+import Mathlib
 
-import X2lib.Topology.PiecewiseLinear.Aux.Set
-import X2lib.Topology.PiecewiseLinear.Aux.Topology
-import X2lib.Topology.PiecewiseLinear.Aux.Affine
-import X2lib.Topology.PiecewiseLinear.Aux.Module
-import X2lib.Topology.PiecewiseLinear.AffineCone
-import X2lib.Topology.PiecewiseLinear.AffineConeNhd
-import X2lib.Topology.PiecewiseLinear.AffinePolyhedron
+import X2lib.Aux.Set
+import X2lib.Aux.Affine
+import X2lib.Aux.Module
 
 /-!
 # Affine halfspaces

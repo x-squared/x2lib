@@ -3,27 +3,11 @@ Copyright (c) 2024 Stephan Maier. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Stephan Maier
 -/
-import Mathlib.Data.Set.Image
-import Mathlib.Data.Set.Subset
-import Mathlib.Order.SetNotation
-import Mathlib.Algebra.AddTorsor
-import Mathlib.Algebra.Module.Basic
-import Mathlib.Algebra.Order.Ring.Defs
-import Mathlib.Algebra.Order.Field.Defs
-import Mathlib.Algebra.Group.Action.Opposite
-import Mathlib.Topology.Algebra.Affine
-import Mathlib.LinearAlgebra.AffineSpace.Basic
-import Mathlib.LinearAlgebra.AffineSpace.AffineMap
-import Mathlib.LinearAlgebra.AffineSpace.AffineSubspace
-import Mathlib.LinearAlgebra.Ray
+import Mathlib
 
-import X2lib.Topology.PiecewiseLinear.Aux.Set
-import X2lib.Topology.PiecewiseLinear.Aux.Topology
-import X2lib.Topology.PiecewiseLinear.Aux.Affine
-import X2lib.Topology.PiecewiseLinear.Aux.Module
-import X2lib.Topology.PiecewiseLinear.AffineCone
-import X2lib.Topology.PiecewiseLinear.AffineConeNhd
-import X2lib.Topology.PiecewiseLinear.AffinePolyhedron
+import X2lib.Aux.Set
+import X2lib.Aux.Affine
+import X2lib.Aux.Module
 
 /-!
 # Affine hyperplanes
@@ -31,39 +15,31 @@ import X2lib.Topology.PiecewiseLinear.AffinePolyhedron
 In this section we introduce several different ways to view hyperplanes.
 We provide the necessary theorems to pass seamlessly from one view
 to another.
-
-## Main results
-
-- `exists_foo`: the main existence theorem of `foo`s.
-
-## Notation
-
- - `|_|` : The barrification operator, see `bar_of_foo`.
-
-## References
-
-See [Rourke] for ann introduction to PL-topology.
 -/
 
-universe u v w
 open Set
 
 -- ********************************************************************
-section «Hyperplane»
+section «Hyperplane definitions»
 
 /-!
 ## Definitions
 
+Hyperplanes cnabe viewed in many ways, for example as null-spaces of
+affine maps (see `Affine.IsNullspace`) or as affine subspaces of codimension 1
+(see `Affine.IsCodimOneSubspace`).
+
+The notion of hyperplane will be defined through the structure `Affine.Hyperplane`.
+The structure will then be extended through defintions and theorems which
+allow to pass seamlessly between the various points of view.
 -/
 
 -- --------------------------------------------------------------------
-section «Hyperplane Definitions»
-
 namespace AffineSubspace
 
-variable {𝕜 : Type u} [Ring 𝕜]
+variable (𝕜 : Type u) [Ring 𝕜]
 variable {V : Type v} [AddCommGroup V] [Module 𝕜 V]
-variable {P : Type w} [AddTorsor V P]
+variable (P : Type w) [AddTorsor V P]
 
 /-- An affine subspace is a nullspace iff it is the preimage of `0` of an affine map to the base ring. -/
 def IsNullspace (a : AffineSubspace 𝕜 P) : Prop :=
@@ -76,6 +52,7 @@ def IsCodimOneSubspace (a : AffineSubspace 𝕜 P) : Prop :=
 
 end AffineSubspace
 
+-- --------------------------------------------------------------------
 variable (𝕜 : Type u) [Ring 𝕜]
 variable {V : Type v} [AddCommGroup V] [Module 𝕜 V]
 variable (P : Type w) [AddTorsor V P]
@@ -87,26 +64,19 @@ structure Affine.Hyperplane extends AffineSubspace 𝕜 P where
   /-- The hyperplane is witnessed by affine maps to the base-ring. -/
   is_nullspace : toAffineSubspace.IsNullspace
 
-/-- A set is a nullspace iff it is the preimage of `0` of an affine map to the base ring. -/
-def Set.IsNullspace (s : Set P) : Prop := ∃ φ : P →ᵃ[𝕜] 𝕜, Function.Nonconstant φ ∧ s = { p : P | φ p = 0 }
-
-/-- A set is a codimension-1 subspace iff it is a codimension-1 affine subspace. -/
-def Set.IsCodimOneSubspace (s : Set P) : Prop :=
-  ∃ a : AffineSubspace 𝕜 P, s = a ∧ a.IsCodimOneSubspace
-
-end «Hyperplane Definitions»
+end «Hyperplane definitions»
 
 -- --------------------------------------------------------------------
 section «Hyperplane Properties»
-
-namespace Affine.Hyperplane
 
 variable {𝕜 : Type u} [DivisionRing 𝕜]
 variable {V : Type v} [AddCommGroup V] [Module 𝕜 V]
 variable {P : Type w} [AddTorsor V P]
 
+namespace Affine.Hyperplane
+
 /-- This allows us to view a `Hyperplane` as a `Set`.-/
-instance : SetLike (Hyperplane 𝕜 P) P where
+instance instSetLikeHyperplane : SetLike (Hyperplane 𝕜 P) P where
   coe hyp := hyp.carrier
   coe_injective' h0 h1 h := by
     dsimp at h
@@ -115,22 +85,6 @@ instance : SetLike (Hyperplane 𝕜 P) P where
       h0 = ⟨h0.toAffineSubspace, h0.is_nullspace⟩ := rfl
       _  = ⟨h1.toAffineSubspace, h1.is_nullspace⟩ := by simp only [ha0a1, h]
       _  = h1 := rfl
-
-/- This allows us to view the fact that an affine subspace `IsHyperplane`
-as `Hyperplane`.-/
--- instance instCoeSort_IsHyperplane_to_Hyperplane : CoeSort (IsHyperplane 𝕜 P s) (Hyperplane 𝕜 P) where
---   coe h := {
---     carrier := s
---     smul_vsub_vadd_mem := by
---      rcases h.nullspace_witness with ⟨φ, _, hs⟩
---      let a : AffineSubspace 𝕜 P := AffineSubspace.comap φ (AffineSubspace.singleton 𝕜 𝕜 (0:𝕜))
---      have : s = a := by
---        rw [AffineSubspace.coe_comap, AffineSubspace.singleton_coe, Set.preimage, hs]; simp
---      rw [this]
---      intro k _ _ _ h0 h1 h2
---      exact (AffineSubspace.comap φ (AffineSubspace.singleton 𝕜 𝕜 (0:𝕜) )).smul_vsub_vadd_mem k h0 h1 h2
---     nullspace_witness := h.nullspace_witness
---   }
 
 /-- A defining map for a hyperplane is an affine map that defines the
 hyperplane.  -/
@@ -147,15 +101,16 @@ def mk (φ : P →ᵃ[𝕜] 𝕜) (h : Function.Nonconstant φ) : Hyperplane �
     use φ; apply And.intro h
     simp only [AffineSubspace.comap, Set.preimage, AffineSubspace.mem_coe, AffineSubspace.mem_singleton_iff_eq]
 
-
-/-- The affine map that defines a hyperplane is a witness for this hyperplane. -/
-theorem mk_coe (φ : P →ᵃ[𝕜] 𝕜)(h : Function.Nonconstant φ) :
+/-- The nullset defined by an affine map is the carrier of the hyperplane
+defined by  `Affine.Hyperplane.mk`. -/
+theorem mk_coe_set (φ : P →ᵃ[𝕜] 𝕜)(h : Function.Nonconstant φ) :
   ↑(Hyperplane.mk φ h) = { p : P | φ p = 0 } := by rfl
 
-/-- The affine map that defines a hyperplane is a witness for this hyperplane. -/
+/-- The affine map that defines a hyperplane through `Affine.Hyperplane.mk`
+is a witness for this hyperplane. -/
 theorem mk_nullspace_witness (φ : P →ᵃ[𝕜] 𝕜)(h : Function.Nonconstant φ) :
     (Hyperplane.mk φ h).is_nullspace_witness φ := by
-  rw [is_nullspace_witness, mk_coe]; apply And.intro h; rfl
+  rw [is_nullspace_witness, mk_coe_set]; apply And.intro h; rfl
 
 end Affine.Hyperplane
 
@@ -163,6 +118,13 @@ end «Hyperplane Properties»
 
 -- --------------------------------------------------------------------
 section «Hyperplane Nullspace-Codim-1 Equivalence»
+
+/-!
+## Equivalence of points of view
+
+In this section we show that the various ways of viewing hyperplanes are
+equivalent.
+-/
 
 namespace AffineSubspace
 
@@ -194,10 +156,7 @@ theorem is_nullspace_impl_is_codim1 (a : AffineSubspace 𝕜 P) (h : a.IsNullspa
     exact Set.eq_of_subset_of_subset (Set.subset_univ (spanPoints 𝕜 (↑a ∪ {x1}))) this
   simp only [Set.subset_def]
   intro p; simp
-
-
   admit
-
 
 -- Submodule.mem_span_insert
 
@@ -213,7 +172,6 @@ private theorem affineSpan_of_affineSubspace_and_point (a : AffineSubspace 𝕜 
   ext q; simp only [spanPoints, mem_setOf]
   apply Iff.intro
   · rintro ⟨q0, hq0, v0, hv0, hqq0v0⟩
-
     admit
   · admit
 
@@ -245,16 +203,78 @@ def hyperplane_from_codim1 (a : AffineSubspace 𝕜 P) (hp : a.IsCodimOneSubspac
 theorem is_codimOneSubspace (a : Affine.Hyperplane 𝕜 P) :
     AffineSubspace.IsCodimOneSubspace a.toAffineSubspace := a.is_nullspace_impl_is_codim1 a.is_nullspace
 
+/- This allows us to view the fact that an affine subspace `IsNullspace`
+as `Hyperplane`.-/
+instance instCoeSortIsHyperplanToHyperplane : CoeSort (IsNullspace 𝕜 P a) (Affine.Hyperplane 𝕜 P) where
+  coe h := ⟨a, h⟩
+
+/- This allows us to view the fact that an affine subspace `IsCodimOneSubspace`
+as `Hyperplane`.-/
+instance instCoeSortIsCodimOneSubspaceToHyperplane : CoeSort (IsCodimOneSubspace 𝕜 P a) (Affine.Hyperplane 𝕜 P) where
+  coe := hyperplane_from_codim1 a
+
 end AffineSubspace
 
 end «Hyperplane Nullspace-Codim-1 Equivalence»
 
 -- --------------------------------------------------------------------
-section «Hyperplane in Euclidean Space»
+section «Hyperplanes as sets»
 
+/-!
+## Sets that are hyperplanes
 
+This section shows how to describe `Set`s as hyperplanes. This section
+serves to transfer statements about hyperplanes to statements about sets
+that are the carriers of hyperplanes. This allows you to pass from such
+sets to the language of affines spaces.
+-/
 
-end «Hyperplane in Euclidean Space»
+variable (𝕜 : Type u) [DivisionRing 𝕜]
+variable {V : Type v} [AddCommGroup V] [Module 𝕜 V]
+variable (P : Type w) [AddTorsor V P]
+
+namespace Set
+open Affine
+open Affine.Hyperplane
+
+/-- A set is a nullspace iff it is the preimage of `0` of an affine map to the base ring. -/
+def IsNullspace (s : Set P) : Prop := ∃ φ : P →ᵃ[𝕜] 𝕜, Function.Nonconstant φ ∧ s = { p : P | φ p = 0 }
+
+/-- A set is a codimension-1 subspace iff it is a codimension-1 affine subspace. -/
+def IsCodimOneSubspace (s : Set P) : Prop :=
+  ∃ a : AffineSubspace 𝕜 P, s = a ∧ a.IsCodimOneSubspace
+
+/-- A set that satisfies `IsNullspace` uniquely defines a `Hyperplane`. -/
+theorem IsNullspace_as_hyperplane (hs : IsNullspace 𝕜 P s) :
+    ∃! a : Hyperplane 𝕜 P, s = a := by
+  admit
+
+/-- A set that satisfies `IsCodimOneSubspace` uniquely defines a `Hyperplane`. -/
+theorem IsCodimOneSubspace_as_hyperplane (hs : IsCodimOneSubspace 𝕜 P s) :
+    ∃! a : Hyperplane 𝕜 P, s = a := by
+  admit
+
+end Set
+
+end «Hyperplanes as sets»
+
+-- --------------------------------------------------------------------
+section «Hyperplane in inner produce spaces»
+
+/-!
+## Hyperplanes in inner product spaces
+TODO Inner Product Spaces
+
+Note: We regret that `InnerProductSpace`s are defined using the condition
+`RCLike` on the base ring. We only need algebraic properties, but `RCLike`
+forces us to assume completeness, which is not required.
+-/
+
+variable (𝕜 : Type u) [Ring 𝕜] [RCLike 𝕜]
+variable {V : Type v} [NormedAddCommGroup V] [InnerProductSpace 𝕜 V] [Module 𝕜 V]
+variable (P : Type w) [MetricSpace P] [NormedAddTorsor V P]
+
+end «Hyperplane in inner produce spaces»
 
 -- --------------------------------------------------------------------
 section «Closed Hyperplane Definitions»
@@ -262,6 +282,10 @@ section «Closed Hyperplane Definitions»
 /-!
 ## Closed hyperplanes
 
+This section passes fron the algfebraic to the topological category.
+Once we assume continuity (of maps), hyperplanes will be closed sets.
+As a tpological affien space may contain non-closed hyperplanes, we
+introduce a separate definition for closed hyperplanes.
 -/
 
 variable (𝕜 : Type u) [Ring 𝕜] [TopologicalSpace 𝕜]
@@ -310,4 +334,3 @@ end Affine.ClosedHyperplane
 end «Closed Hyperplane Properties»
 
 -- --------------------------------------------------------------------
-end «Hyperplane»

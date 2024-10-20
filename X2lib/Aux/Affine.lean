@@ -263,6 +263,10 @@ theorem segmentOC_contracts_into_segmentOO (hk : k ∈ Set.Ioo (0:𝕜) 1) (a b 
   use k
   exact ⟨hk, rfl⟩
 
+-- -------------------------------------------------------------------
+
+--def above (s : segmentCC 𝕜 a b) : Set P := segmentOI 𝕜 b
+
 end Affine
 
 end «Affine segments»
@@ -649,12 +653,14 @@ variable (𝕜 : Type u) [OrderedCommRing 𝕜]
 variable {V : Type v} [AddCommGroup V] [Module 𝕜 V]
 variable (P : Type w) [AddTorsor V P]
 
-/-- A star-convex set is a set where all linbes connecting a vertex to points
+/-- A star-convex set is a set where all lines connecting a vertex to points
 in the set lies in the set. -/
-def IsStarConvex (v : P) (s : Set P) : Prop := ∀ ⦃x : P⦄, x ∈ s → segmentCC 𝕜 v x ⊆ s
+def IsStarConvex (v : P) (s : Set P) : Prop :=
+  ∀ ⦃x : P⦄, x ∈ s → segmentCC 𝕜 v x ⊆ s
 
-/-- A convex set `IsStarConvex` star-vonvex at all of its points. -/
-def IsConvex (s : Set P) : Prop := ∀ ⦃p : P⦄, p ∈ s → IsStarConvex 𝕜 P p s
+/-- A convex set `IsStarConvex` star-convex at all of its points. -/
+def IsConvex (s : Set P) : Prop :=
+  ∀ ⦃p : P⦄, p ∈ s → IsStarConvex 𝕜 P p s
 
 end «Definitions»
 
@@ -667,18 +673,20 @@ variable {P : Type w} [AddTorsor V P]
 
 namespace IsStarConvex
 
-/-- The base of a star-convex set is the set of points that lie at
+--def IsBounded (hc : IsStarConvex 𝕜 P p s) : Prop :=
+
+/- The base of a star-convex set is the set of points that lie at
 the end of a line that emenates from the vertex. -/
-def base (hs : IsStarConvex 𝕜 P v s) : Set P := by admit
+--def base (hs : IsStarConvex 𝕜 P v s) : Set P := by admit
 
 /-- Star-Conxity is stable under finite intersectiion. -/
-theorem inter (v : P) (s0 s1 : Set P)
-    (hs0 : IsStarConvex 𝕜 P p s0) (hs1 : IsStarConvex 𝕜 P p s1) : IsStarConvex 𝕜 P p (s0 ∩ s1) := by
+theorem inter (hs0 : IsStarConvex 𝕜 P p s0) (hs1 : IsStarConvex 𝕜 P p s1) :
+    IsStarConvex 𝕜 P p (s0 ∩ s1) := by
   admit
 
-/-- Star-Conxity is stable under any intersectiion. -/
-theorem iInter (v : P) (s : ι → Set P)
-    (hs : ∀ i : ι, IsStarConvex 𝕜 P p (s i)) : IsStarConvex 𝕜 P p (⋂ i : ι, s i) := by
+/-- Star-Conxity is stable under any intersection. -/
+theorem iInter (s : ι → Set P) (hs : ∀ i : ι, IsStarConvex 𝕜 P p (s i)) :
+    IsStarConvex 𝕜 P p (⋂ i : ι, s i) := by
   admit
 
 end IsStarConvex
@@ -686,13 +694,13 @@ end IsStarConvex
 namespace IsConvex
 
 /-- Conxity is stable under finite intersectiion. -/
-theorem inter (s0 s1 : Set P)
-    (hs0 : IsConvex 𝕜 P s0) (hs1 : IsConvex 𝕜 P s1) : IsConvex 𝕜 P (s0 ∩ s1) := by
+theorem inter (hs0 : IsConvex 𝕜 P s0) (hs1 : IsConvex 𝕜 P s1) :
+    IsConvex 𝕜 P (s0 ∩ s1) := by
   admit
 
 /-- Conxity is stable under any intersectiion. -/
-theorem iInter (v : P) (s : ι → Set P)
-    (hs : ∀ i : ι, IsConvex 𝕜 P (s i)) : IsConvex 𝕜 P (⋂ i : ι, s i) := by
+theorem iInter (v : P) (s : ι → Set P) (hs : ∀ i : ι, IsConvex 𝕜 P (s i)) :
+    IsConvex 𝕜 P (⋂ i : ι, s i) := by
   admit
 
 end IsConvex

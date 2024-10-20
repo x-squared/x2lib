@@ -13,19 +13,6 @@ import X2lib.Aux.Module
 # Affine joins
 
 In this file we introduce `Join` as subset of a given affine ambient space.
-The joinis a fundamental set-constructions for piecewise-linear topology.
-
-## Main results
-
-- `exists_foo`: the main existence theorem of `foo`s.
-
-## Notation
-
- - `|_|` : The barrification operator, see `bar_of_foo`.
-
-## References
-
-See [Rourke] for ann introduction to PL-topology.
 -/
 
 universe u v w
