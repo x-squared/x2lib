@@ -284,7 +284,7 @@ end «Hyperplane in inner produce spaces»
 -- --------------------------------------------------------------------
 section «Various properties of hyperplanes»
 
-variable {𝕜 : Type u} [OrderedCommRing 𝕜] [DivisionRing 𝕜]
+variable {𝕜 : Type u} [LinearOrderedField 𝕜]
 variable {V : Type v} [AddCommGroup V] [Module 𝕜 V]
 variable {P : Type w} [AddTorsor V P]
 
