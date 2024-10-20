@@ -640,7 +640,6 @@ end «Topology»
 
 end «AffineSubspace»
 
-
 -- ********************************************************************
 section «Convexity»
 
@@ -673,12 +672,6 @@ variable {P : Type w} [AddTorsor V P]
 
 namespace IsStarConvex
 
---def IsBounded (hc : IsStarConvex 𝕜 P p s) : Prop :=
-
-/- The base of a star-convex set is the set of points that lie at
-the end of a line that emenates from the vertex. -/
---def base (hs : IsStarConvex 𝕜 P v s) : Set P := by admit
-
 /-- Star-Conxity is stable under finite intersectiion. -/
 theorem inter (hs0 : IsStarConvex 𝕜 P p s0) (hs1 : IsStarConvex 𝕜 P p s1) :
     IsStarConvex 𝕜 P p (s0 ∩ s1) := by
@@ -708,6 +701,19 @@ end IsConvex
 end «Properties»
 
 end Affine
+
+-- --------------------------------------------------------------------
+namespace AffineSubspace
+
+variable {𝕜 : Type u} [OrderedCommRing 𝕜]
+variable {V : Type v} [AddCommGroup V] [Module 𝕜 V]
+variable {P : Type w} [AddTorsor V P]
+
+/-- `AffineSubspace`s are convex. -/
+theorem is_convex (a : AffineSubspace 𝕜 P) : Affine.IsConvex 𝕜 P a := by
+  admit
+
+end AffineSubspace
 
 end «Convexity»
 

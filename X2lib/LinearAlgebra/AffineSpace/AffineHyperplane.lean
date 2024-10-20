@@ -73,9 +73,9 @@ variable {𝕜 : Type u} [DivisionRing 𝕜]
 variable {V : Type v} [AddCommGroup V] [Module 𝕜 V]
 variable {P : Type w} [AddTorsor V P]
 
-namespace Affine.Hyperplane
+namespace Affine
 
-/-- This allows us to view a `Hyperplane` as a `Set`.-/
+/-- This allows us to view a `Affine.Hyperplane` as a `Set`.-/
 instance instSetLikeHyperplane : SetLike (Hyperplane 𝕜 P) P where
   coe hyp := hyp.carrier
   coe_injective' h0 h1 h := by
@@ -86,8 +86,12 @@ instance instSetLikeHyperplane : SetLike (Hyperplane 𝕜 P) P where
       _  = ⟨h1.toAffineSubspace, h1.is_nullspace⟩ := by simp only [ha0a1, h]
       _  = h1 := rfl
 
+end Affine
+
+namespace Affine.Hyperplane
+
 /-- A defining map for a hyperplane is an affine map that defines the
-hyperplane.  -/
+hyperplane. -/
 def is_nullspace_witness (hp : Hyperplane 𝕜 P) (φ : P →ᵃ[𝕜] 𝕜) : Prop :=
   Function.Nonconstant φ ∧ hp = { p : P | φ p = 0 }
 
@@ -100,6 +104,7 @@ def mk (φ : P →ᵃ[𝕜] 𝕜) (h : Function.Nonconstant φ) : Hyperplane �
   is_nullspace := by
     use φ; apply And.intro h
     simp only [AffineSubspace.comap, Set.preimage, AffineSubspace.mem_coe, AffineSubspace.mem_singleton_iff_eq]
+    rfl
 
 /-- The nullset defined by an affine map is the carrier of the hyperplane
 defined by  `Affine.Hyperplane.mk`. -/
@@ -167,8 +172,8 @@ in its most direct form. -/
 private theorem affineSpan_of_affineSubspace_and_point (a : AffineSubspace 𝕜 P) (hp : p ∉ a) :
     spanPoints 𝕜 ( a ∪ { p } ) = { q : P | ∃ q₀ ∈ a, ∃ k : 𝕜, q = k • (p -ᵥ q₀) +ᵥ q₀} := by
   -- Auxiliary result
-  let hSpanPoints : spanPoints 𝕜 ( a ∪ { p } ) = { x : P | ∃ ∨ : Submodule.span 𝕜 (Set.insert (p -ᵥ q) a.direction), x = v +ᵥ q } := by
-    admit
+  --let hSpanPoints : spanPoints 𝕜 ( a ∪ { p } ) = { x : P | ∃ ∨ : Submodule.span 𝕜 (Set.insert (p -ᵥ q) a.direction), x = v +ᵥ q } := by
+    --admit
   ext q; simp only [spanPoints, mem_setOf]
   apply Iff.intro
   · rintro ⟨q0, hq0, v0, hv0, hqq0v0⟩
@@ -201,7 +206,7 @@ def hyperplane_from_codim1 (a : AffineSubspace 𝕜 P) (hp : a.IsCodimOneSubspac
 
 /-- An instance of `Affine.Hyperplane` satisfies `AffineSubspace.IsCodimOneSubspace`. -/
 theorem is_codimOneSubspace (a : Affine.Hyperplane 𝕜 P) :
-    AffineSubspace.IsCodimOneSubspace a.toAffineSubspace := a.is_nullspace_impl_is_codim1 a.is_nullspace
+    AffineSubspace.IsCodimOneSubspace 𝕜 P a.toAffineSubspace := a.is_nullspace_impl_is_codim1 a.is_nullspace
 
 /- This allows us to view the fact that an affine subspace `IsNullspace`
 as `Hyperplane`.-/
@@ -218,7 +223,7 @@ end AffineSubspace
 end «Hyperplane Nullspace-Codim-1 Equivalence»
 
 -- --------------------------------------------------------------------
-section «Hyperplanes as sets»
+section «Sets as hyperplanes»
 
 /-!
 ## Sets that are hyperplanes
@@ -256,7 +261,7 @@ theorem IsCodimOneSubspace_as_hyperplane (hs : IsCodimOneSubspace 𝕜 P s) :
 
 end Set
 
-end «Hyperplanes as sets»
+end «Sets as hyperplanes»
 
 -- --------------------------------------------------------------------
 section «Hyperplane in inner produce spaces»
@@ -277,35 +282,31 @@ variable (P : Type w) [MetricSpace P] [NormedAddTorsor V P]
 end «Hyperplane in inner produce spaces»
 
 -- --------------------------------------------------------------------
-section «Closed Hyperplane Definitions»
+section «Various properties of hyperplanes»
+
+variable {𝕜 : Type u} [OrderedCommRing 𝕜] [DivisionRing 𝕜]
+variable {V : Type v} [AddCommGroup V] [Module 𝕜 V]
+variable {P : Type w} [AddTorsor V P]
+
+namespace Affine.Hyperplane
+
+/-- `Affine.Hyperplane`s are convex. -/
+theorem is_convex (h : Hyperplane 𝕜 P)  : Affine.IsConvex 𝕜 P h := by
+  admit
+
+end Affine.Hyperplane
+
+end «Various properties of hyperplanes»
+
+-- --------------------------------------------------------------------
+section «Closed Hyperplane»
 
 /-!
 ## Closed hyperplanes
 
-This section passes fron the algfebraic to the topological category.
+This section passes fron the algebraic to the topological category.
 Once we assume continuity (of maps), hyperplanes will be closed sets.
-As a tpological affien space may contain non-closed hyperplanes, we
-introduce a separate definition for closed hyperplanes.
 -/
-
-variable (𝕜 : Type u) [Ring 𝕜] [TopologicalSpace 𝕜]
-variable {V : Type v} [AddCommGroup V] [Module 𝕜 V]
-variable (P : Type w) [AddTorsor V P] [TopologicalSpace P]
-
-/-- A closed hyperplane is a hyperplane that is closed as a set. -/
-structure Affine.ClosedHyperplane extends Affine.Hyperplane 𝕜 P where
-  mk' ::
-  /-- The hyperplane is closed as a set. -/
-  is_closed : IsClosed carrier
-
-/-- Every closed hyperplane is a hyperplane. -/
-instance Affine.ClosedHyperplane.instCoeSort_ClosedHyperplane_to_Hyperplane : CoeSort (ClosedHyperplane 𝕜 P) (Hyperplane 𝕜 P) where
-  coe := toHyperplane
-
-end «Closed Hyperplane Definitions»
-
--- --------------------------------------------------------------------
-section «Closed Hyperplane Properties»
 
 variable {𝕜 : Type u} [Ring 𝕜] [TopologicalSpace 𝕜]
 variable {V : Type v} [AddCommGroup V] [Module 𝕜 V]
@@ -313,24 +314,25 @@ variable {P : Type w} [AddTorsor V P] [TopologicalSpace P]
 
 open Affine.Hyperplane
 
-namespace Affine.ClosedHyperplane
+namespace Affine.Hyperplane
 
 /-- Every witness of a hyperplane is in fact continuous. -/
 @[continuity]
-theorem nullspace_witness_continuous (ch : ClosedHyperplane 𝕜 P)
-    (h : ch.is_nullspace_witness φ) : Continuous φ := by
+theorem nullspace_witness_continuous (h : Hyperplane 𝕜 P) (hc : IsClosed h)
+    {φ : P →ᵃ[𝕜] 𝕜} (hn : h.is_nullspace_witness φ) : 1=1 := by
   admit
+  --Continuous φ
 
 /-- The hyperplane is the nullspace of continuous affine maps to the
 ground ring. -/
-theorem is_cont_nullspace (ch : ClosedHyperplane 𝕜 P) :
+theorem is_cont_nullspace (h : Hyperplane 𝕜 P) (hc : IsClosed h) :
     ∃ φ : P →ᴬ[𝕜] 𝕜, Function.Nonconstant φ ∧ ch = { p : P | φ p = 0 } := by
   rcases ch.is_nullspace with ⟨φ, hφ⟩
   use ⟨φ, ch.nullspace_witness_continuous hφ⟩
   exact hφ
 
-end Affine.ClosedHyperplane
+end Affine.Hyperplane
 
-end «Closed Hyperplane Properties»
+end «Closed Hyperplane»
 
 -- --------------------------------------------------------------------

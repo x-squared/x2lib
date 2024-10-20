@@ -15,18 +15,6 @@ import X2lib.Aux.Module
 In this section we introduce several different ways to view halfspaces.
 We provide the necessary theorems to pass seamlessly from one view
 to another.
-
-## Main results
-
-- `exists_foo`: the main existence theorem of `foo`s.
-
-## Notation
-
- - `|_|` : The barrification operator, see `bar_of_foo`.
-
-## References
-
-See [Rourke] for ann introduction to PL-topology.
 -/
 
 universe u v w
@@ -212,21 +200,6 @@ end «Field»
 
 end «Properties»
 
--- --------------------------------------------------------------------
-section «Polyhedron»
-
-variable {𝕜 : Type u} [LinearOrderedField 𝕜] variable [TopologicalSpace 𝕜]
-variable {V : Type v} [AddCommGroup V] [Module 𝕜 V]
-variable {P : Type w} [AddTorsor V P] [TopologicalSpace P]
-
-/-- A half-space in an affine space is a polyhedron. -/
-theorem is_polyhedron (s : Halfspace 𝕜 P) : Affine.Polyhedron 𝕜 P s where
-  topology_is_generated_by_cone_nhds := by
-    admit
-  is_locally_closed := by
-    admit
-
-end «Polyhedron»
 -- --------------------------------------------------------------------
 end Halfspace
 end «Halfspace»

@@ -1218,26 +1218,10 @@ variable {𝕜 : Type u} [LinearOrderedField 𝕜]
 variable {V : Type v} [AddCommGroup V] [Module 𝕜 V]
 variable {P : Type w} [AddTorsor V P]
 
-namespace Affine
-
-/-- A `IsStarConvex` set is an affine cone... -/
-theorem starConvex_is_cone (hs : IsStarConvex 𝕜 P p s) :
-    IsCone 𝕜 V P p hs.base := by
-  admit
-
-end Affine
-
 namespace Affine.Cone
 
 /-- `Affine.Cone`s satisfy `Affine.IsStarConvex`. -/
 theorem is_starConvex (c : Cone 𝕜 V P) : IsStarConvex 𝕜 P c.vertex c.carrier := by
-  admit
-
-/-- The intersection of an affine cone with a `IsStarConvex` set centred
-at the vertex of the cone is again an affine cone. The base is the
-intersection of the cone's base with the star-convex set. -/
-theorem inter_starConvex (c : Cone 𝕜 V P) (hs : IsStarConvex 𝕜 P c.vertex s) :
-    IsCone 𝕜 V P c.vertex (s ∩ c.carrier) := by
   admit
 
 end Affine.Cone
