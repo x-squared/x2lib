@@ -1065,19 +1065,11 @@ cones through set-operation. The operations we consider are:
 
 - Subsets / subcones of affine cones: `Affine.Cone.subcone`
 - Intersection of affine cones: `Affine.Cone.inter`
-
-The union of cones can be defined as the union of their carriers.
-However, the base of this union is usually a "jagged" set that
-is not useful in PL-topology. We thus refrain from introducing
-the union of affine cones.
+- Relation to sets that satisfy `Affine.IsStarConvex`
 
 Both sub-cones and intersections behave well with respect to the cone's
 carrier: The resulting carrier of the intersection, for example, is
 the intersection of the two cone's carriers.
-
-Note that the union of two affine cones is not necessarily what is
-required in the practice of PL-topology as the base of the union is
-not as a rule a suitable base.
 -/
 
 variable {𝕜 : Type u} [LinearOrderedField 𝕜]
@@ -1217,8 +1209,8 @@ section «Convex sets»
 /-!
 ### Relation to convex sets
 
-Sets that satisfiy `IsStarConvex` are affine connes provided they
-are bounded.
+This section looks at the relation between`Affine.Cone`s and sets that
+are `Affine.IsStarConvex`.
 TODO Introduce the notion of bounded star convex sets.
 -/
 
@@ -1236,6 +1228,10 @@ theorem starConvex_is_cone (hs : IsStarConvex 𝕜 P p s) :
 end Affine
 
 namespace Affine.Cone
+
+/-- `Affine.Cone`s satisfy `Affine.IsStarConvex`. -/
+theorem is_starConvex (c : Cone 𝕜 V P) : IsStarConvex 𝕜 P c.vertex c.carrier := by
+  admit
 
 /-- The intersection of an affine cone with a `IsStarConvex` set centred
 at the vertex of the cone is again an affine cone. The base is the
