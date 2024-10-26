@@ -54,6 +54,16 @@ end «Submodules»
 -- ********************************************************************
 section «Finite dimensional spaces»
 
+/-!
+# Auxiliary results for finite dimensional spaces
+
+Main theorems:
+
+- Any set of submodules of a finite dimensional module contains maximal
+  elements (`Module.exists_max_submodule`). This assumes that the base
+  ring is at least a `DivisionRing`.
+-/
+
 /-- In a finite dimensional vector space each set of linear subspaces
 has maximal elements. -/
 theorem Module.exists_max_submodule
@@ -89,5 +99,20 @@ theorem Module.exists_max_submodule
   exact Submodule.eq_of_le_of_finrank_le hsmsm' this
 
   end «Finite dimensional spaces»
+
+-- ********************************************************************
+section «Topological vector spaces»
+
+/-!
+# Auxiliary results for topological vector spaces
+
+Submodule.closed_of_finiteDimensional
+
+LinearMap.continuous_iff_isClosed_ker
+
+-/
+
+
+end «Topological vector spaces»
 
 -- ********************************************************************

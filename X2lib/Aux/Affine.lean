@@ -617,24 +617,32 @@ end «Properties»
 -- --------------------------------------------------------------------
 section «Topology»
 
+variable {𝕜 : Type u} [NontriviallyNormedField 𝕜] [TopologicalSpace 𝕜] [LocallyCompactSpace 𝕜]
+variable {V : Type v} [AddCommGroup V] [Module 𝕜 V] [TopologicalSpace V] [TopologicalAddGroup V] [T2Space V]
+variable {P : Type w} [AddTorsor V P] [TopologicalSpace P] [TopologicalAddTorsor V P]
+
 namespace AffineSubspace
 
-variable {𝕜 : Type u} [Field 𝕜] [TopologicalSpace 𝕜] [LocallyCompactSpace 𝕜]
-variable {V : Type v} [AddCommGroup V] [Module 𝕜 V]
-variable {P : Type w} [AddTorsor V P] [TopologicalSpace P]
+--[ContinuousSMul 𝕜 V] (s : Submodule 𝕜 E) [FiniteDimensional 𝕜 ↥s]
 
 /-- Finite dimensional afffine subspaces are closed sets within the
 ambient affine space provided the field over which the structures are
 defined is locally compact.
-TODO Comparable results in Mathlib use normed spaces. This is not
-necessary. It is enough if the topology of finite dimensional spaces over
-the field are locally compact. See the proofs in the first chapter of
-Rudin, Functional Analysis. -/
+Note that `closed_of_finiteDimensional` results in Mathlib use normed spaces.
+This is not necessary. -/
 theorem closed_of_finiteDimensional' (s : AffineSubspace 𝕜 P) [FiniteDimensional 𝕜 s.direction] :
     IsClosed (s : Set P) := by
   admit
 
 end AffineSubspace
+
+namespace AffineMap
+
+--LinearMap.continuous_iff_isClosed_ker
+--Continuous ⇑l ↔ IsClosed ↑(LinearMap.ker l)
+theorem continuous_iff_isClosed_ker : 1 = 1 := rfl
+
+end AffineMap
 
 end «Topology»
 

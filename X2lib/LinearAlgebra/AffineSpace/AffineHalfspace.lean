@@ -21,22 +21,13 @@ universe u v w
 open Set
 
 -- ********************************************************************
-section «Hyperplane»
-
-/-!
-## Definitions
-
--/
-
--- ********************************************************************
-section «Halfspace»
-
--- --------------------------------------------------------------------
 section «Definition»
 
-variable (𝕜 : Type u) [LinearOrderedCommRing 𝕜] [TopologicalSpace 𝕜]
+namespace Affine
+
+variable (𝕜 : Type u) [LinearOrderedCommRing 𝕜]
 variable {V : Type v} [AddCommGroup V] [Module 𝕜 V]
-variable (P : Type w) [AddTorsor V P] [TopologicalSpace P]
+variable (P : Type w) [AddTorsor V P]
 
 /-- A halfspace is a set in an affine space that consists of all points
 that are mapped by a nontrivial functional to the nonnegative elements
@@ -58,18 +49,20 @@ structure Halfspace
   /- There is a witness that defines the carrier. -/
   witness : ∃ φ : P →ᴬ[𝕜] 𝕜, Function.Nonconstant φ ∧ carrier = { p : P | 0 ≤ φ p }
 
+end Affine
+
 end «Definition»
 
 -- --------------------------------------------------------------------
-namespace Halfspace
+namespace Affine.Halfspace
 
 section «Properties»
 
 section «Ring»
 
-variable {𝕜 : Type u} [LinearOrderedCommRing 𝕜] [TopologicalSpace 𝕜]
+variable {𝕜 : Type u} [LinearOrderedCommRing 𝕜]
 variable {V : Type v} [AddCommGroup V] [Module 𝕜 V]
-variable {P : Type w} [AddTorsor V P] [TopologicalSpace P]
+variable {P : Type w} [AddTorsor V P]
 
 /-- This allows us to view the fact that as set `IsHalfspace`
 as `Hyperplane`.-/
@@ -200,6 +193,41 @@ end «Field»
 
 end «Properties»
 
+end Affine.Halfspace
+
 -- --------------------------------------------------------------------
-end Halfspace
-end «Halfspace»
+section «Closed Halfspaces»
+
+/-!
+## Closed halfspaces
+
+This section passes fron the algebraic to the topological category.
+Once we assume continuity (of maps), halfspaces will be closed sets.
+-/
+
+variable {𝕜 : Type u} [Ring 𝕜] [TopologicalSpace 𝕜]
+variable {V : Type v} [AddCommGroup V] [Module 𝕜 V]
+variable {P : Type w} [AddTorsor V P] [TopologicalSpace P]
+
+namespace Affine.Halfspace
+
+/-- Every witness of a hyperplane is in fact continuous. -/
+@[continuity]
+theorem nullspace_witness_continuous (h : Halfspace 𝕜 P) (hc : IsClosed h)
+    {φ : P →ᵃ[𝕜] 𝕜} (hn : h.is_nullspace_witness φ) : 1=1 := by
+  admit
+  --Continuous φ
+
+/-- The hyperplane is the nullspace of continuous affine maps to the
+ground ring. -/
+theorem is_cont_nullspace (h : Halfspace 𝕜 P) (hc : IsClosed h) :
+    ∃ φ : P →ᴬ[𝕜] 𝕜, Function.Nonconstant φ ∧ ch = { p : P | φ p = 0 } := by
+  rcases ch.is_nullspace with ⟨φ, hφ⟩
+  use ⟨φ, ch.nullspace_witness_continuous hφ⟩
+  exact hφ
+
+end Affine.Halfspace
+
+end «Closed Halfspaces»
+
+-- --------------------------------------------------------------------

@@ -3,33 +3,15 @@ Copyright (c) 2024 Stephan Maier. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Stephan Maier
 -/
-import Mathlib.Data.Real.Basic
-import Mathlib.Data.Set.Image
-import Mathlib.LinearAlgebra.AffineSpace.Basic
-import Mathlib.LinearAlgebra.AffineSpace.AffineMap
-import Mathlib.Topology.Algebra.ContinuousAffineMap
-import Mathlib.Algebra.BigOperators.Finprod
-import Mathlib.Algebra.AddTorsor
-import Mathlib.Algebra.Module.Basic
-import Mathlib.Topology.Defs.Basic
-import Mathlib.Topology.Defs.Induced
-import Mathlib.Topology.ContinuousFunction.Basic
-import Mathlib.Topology.Homeomorph
-import Mathlib.Topology.Algebra.Ring.Basic
-import Mathlib.Topology.Algebra.Module.Basic
-import Mathlib.Topology.Algebra.Affine
-import Mathlib.Topology.Algebra.ContinuousAffineMap
-import Mathlib.Topology.Algebra.MulAction
-import Mathlib.Topology.Order.Basic
-import Mathlib.Topology.Order.OrderClosed
-import Mathlib.Analysis.Normed.Field.Basic
-import Mathlib.Analysis.Normed.Group.AddTorsor
+import Mathlib
 
-import X2lib.Topology.PiecewiseLinear.Aux.Set
-import X2lib.Topology.PiecewiseLinear.Aux.Topology
-import X2lib.Topology.PiecewiseLinear.Aux.Affine
-import X2lib.Topology.PiecewiseLinear.Aux.Module
-import X2lib.Topology.PiecewiseLinear.AffineCone
+import X2lib.Aux.Set
+import X2lib.Aux.Affine
+import X2lib.Aux.Module
+import X2lib.Aux.Topology
+import X2lib.LinearAlgebra.AffineSpace.AffineJoin
+import X2lib.LinearAlgebra.AffineSpace.AffineCone
+import X2lib.LinearAlgebra.AffineSpace.AffineHalfspace
 import X2lib.Topology.PiecewiseLinear.AffineConeNhd
 
 /-!
@@ -491,7 +473,8 @@ theorem iUnion {ind : Finset ι} (s : ind → Set P) (py : ∀ i : ind, Polyhedr
   --Fin.induction oder Fin.cases
   admit
 
-/-- The product of two affine polyhedra as a polyhedron. -/
+/-- The product of two affine polyhedra as a polyhedron.
+TODO Define the embedding of the product in ambient affine space. -/
 theorem prod (py0 : Polyhedron 𝕜 P s0) (py1 : Polyhedron 𝕜 Q s1) :
     Polyhedron 𝕜 (P × Q) (Set.prod s0 s1) where
   topology_is_generated_by_cone_nhds := by

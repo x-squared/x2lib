@@ -64,6 +64,22 @@ structure Affine.Hyperplane extends AffineSubspace 𝕜 P where
   /-- The hyperplane is witnessed by affine maps to the base-ring. -/
   is_nullspace : toAffineSubspace.IsNullspace
 
+/-- This allows us to view a `Affine.Hyperplane` as a `Set`.-/
+instance Affine.instSetLikeHyperplane : SetLike (Affine.Hyperplane 𝕜 P) P where
+  coe hyp := hyp.carrier
+  coe_injective' h0 h1 h := by
+    dsimp at h
+    have ha0a1 := (inferInstance : SetLike (AffineSubspace 𝕜 P) P).coe_injective h
+    calc
+      h0 = ⟨h0.toAffineSubspace, h0.is_nullspace⟩ := rfl
+      _  = ⟨h1.toAffineSubspace, h1.is_nullspace⟩ := by simp only [ha0a1, h]
+      _  = h1 := rfl
+
+/-- A defining map for a hyperplane is an affine map that defines the
+hyperplane. -/
+def Affine.Hyperplane.is_nullspace_witness (hp : Affine.Hyperplane 𝕜 P) (φ : P →ᵃ[𝕜] 𝕜) : Prop :=
+  Function.Nonconstant φ ∧ hp = { p : P | φ p = 0 }
+
 end «Hyperplane definitions»
 
 -- --------------------------------------------------------------------
@@ -75,25 +91,9 @@ variable {P : Type w} [AddTorsor V P]
 
 namespace Affine
 
-/-- This allows us to view a `Affine.Hyperplane` as a `Set`.-/
-instance instSetLikeHyperplane : SetLike (Hyperplane 𝕜 P) P where
-  coe hyp := hyp.carrier
-  coe_injective' h0 h1 h := by
-    dsimp at h
-    have ha0a1 := (inferInstance : SetLike (AffineSubspace 𝕜 P) P).coe_injective h
-    calc
-      h0 = ⟨h0.toAffineSubspace, h0.is_nullspace⟩ := rfl
-      _  = ⟨h1.toAffineSubspace, h1.is_nullspace⟩ := by simp only [ha0a1, h]
-      _  = h1 := rfl
-
 end Affine
 
 namespace Affine.Hyperplane
-
-/-- A defining map for a hyperplane is an affine map that defines the
-hyperplane. -/
-def is_nullspace_witness (hp : Hyperplane 𝕜 P) (φ : P →ᵃ[𝕜] 𝕜) : Prop :=
-  Function.Nonconstant φ ∧ hp = { p : P | φ p = 0 }
 
 /-- Create a hyperplane from a given affine map. -/
 def mk (φ : P →ᵃ[𝕜] 𝕜) (h : Function.Nonconstant φ) : Hyperplane 𝕜 P where
@@ -114,7 +114,7 @@ theorem mk_coe_set (φ : P →ᵃ[𝕜] 𝕜)(h : Function.Nonconstant φ) :
 /-- The affine map that defines a hyperplane through `Affine.Hyperplane.mk`
 is a witness for this hyperplane. -/
 theorem mk_nullspace_witness (φ : P →ᵃ[𝕜] 𝕜)(h : Function.Nonconstant φ) :
-    (Hyperplane.mk φ h).is_nullspace_witness φ := by
+    (Hyperplane.mk φ h).is_nullspace_witness 𝕜 P φ := by
   rw [is_nullspace_witness, mk_coe_set]; apply And.intro h; rfl
 
 end Affine.Hyperplane
@@ -234,7 +234,7 @@ that are the carriers of hyperplanes. This allows you to pass from such
 sets to the language of affines spaces.
 -/
 
-variable (𝕜 : Type u) [DivisionRing 𝕜]
+variable (𝕜 : Type u) [Ring 𝕜]
 variable {V : Type v} [AddCommGroup V] [Module 𝕜 V]
 variable (P : Type w) [AddTorsor V P]
 
@@ -291,8 +291,8 @@ variable {P : Type w} [AddTorsor V P]
 namespace Affine.Hyperplane
 
 /-- `Affine.Hyperplane`s are convex. -/
-theorem is_convex (h : Hyperplane 𝕜 P)  : Affine.IsConvex 𝕜 P h := by
-  admit
+theorem is_convex (h : Hyperplane 𝕜 P)  : Affine.IsConvex 𝕜 P h :=
+  h.toAffineSubspace.is_convex
 
 end Affine.Hyperplane
 
@@ -308,27 +308,26 @@ This section passes fron the algebraic to the topological category.
 Once we assume continuity (of maps), hyperplanes will be closed sets.
 -/
 
-variable {𝕜 : Type u} [Ring 𝕜] [TopologicalSpace 𝕜]
-variable {V : Type v} [AddCommGroup V] [Module 𝕜 V]
-variable {P : Type w} [AddTorsor V P] [TopologicalSpace P]
-
-open Affine.Hyperplane
+variable {𝕜 : Type u} [NontriviallyNormedField 𝕜] [TopologicalSpace 𝕜] [LocallyCompactSpace 𝕜]
+variable {V : Type v} [AddCommGroup V] [Module 𝕜 V] [TopologicalSpace V] [TopologicalAddGroup V] [T2Space V]
+variable {P : Type w} [AddTorsor V P] [TopologicalSpace P] [TopologicalAddTorsor V P]
 
 namespace Affine.Hyperplane
+open Set
 
 /-- Every witness of a hyperplane is in fact continuous. -/
 @[continuity]
-theorem nullspace_witness_continuous (h : Hyperplane 𝕜 P) (hc : IsClosed h)
-    {φ : P →ᵃ[𝕜] 𝕜} (hn : h.is_nullspace_witness φ) : 1=1 := by
+theorem nullspace_witness_continuous (h : Hyperplane 𝕜 P) (hc : IsClosed (h : Set P))
+    (hn : h.is_nullspace_witness _ _ φ) : Continuous φ := by
+  --exact LinearMap.continuous_iff_isClosed_ker
   admit
-  --Continuous φ
 
 /-- The hyperplane is the nullspace of continuous affine maps to the
 ground ring. -/
-theorem is_cont_nullspace (h : Hyperplane 𝕜 P) (hc : IsClosed h) :
-    ∃ φ : P →ᴬ[𝕜] 𝕜, Function.Nonconstant φ ∧ ch = { p : P | φ p = 0 } := by
-  rcases ch.is_nullspace with ⟨φ, hφ⟩
-  use ⟨φ, ch.nullspace_witness_continuous hφ⟩
+theorem is_nullspace_continuous (h : Hyperplane 𝕜 P) (hc : IsClosed (h : Set P)) :
+    ∃ φ : P →ᴬ[𝕜] 𝕜, Function.Nonconstant φ ∧ h = { p : P | φ p = 0 } := by
+  rcases h.is_nullspace with ⟨φ, hφ⟩
+  use ⟨φ, h.nullspace_witness_continuous hc hφ⟩
   exact hφ
 
 end Affine.Hyperplane
