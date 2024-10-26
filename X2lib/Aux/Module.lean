@@ -99,20 +99,3 @@ theorem Module.exists_max_submodule
   exact Submodule.eq_of_le_of_finrank_le hsmsm' this
 
   end «Finite dimensional spaces»
-
--- ********************************************************************
-section «Topological vector spaces»
-
-/-!
-# Auxiliary results for topological vector spaces
-
-Submodule.closed_of_finiteDimensional
-
-LinearMap.continuous_iff_isClosed_ker
-
--/
-
-
-end «Topological vector spaces»
-
--- ********************************************************************

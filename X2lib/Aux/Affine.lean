@@ -625,7 +625,7 @@ namespace AffineSubspace
 
 --[ContinuousSMul 𝕜 V] (s : Submodule 𝕜 E) [FiniteDimensional 𝕜 ↥s]
 
-/-- Finite dimensional afffine subspaces are closed sets within the
+/- Finite dimensional afffine subspaces are closed sets within the
 ambient affine space provided the field over which the structures are
 defined is locally compact.
 Note that `closed_of_finiteDimensional` results in Mathlib use normed spaces.
@@ -640,7 +640,17 @@ namespace AffineMap
 
 --LinearMap.continuous_iff_isClosed_ker
 --Continuous ⇑l ↔ IsClosed ↑(LinearMap.ker l)
-theorem continuous_iff_isClosed_ker : 1 = 1 := rfl
+/-- The preimage of some point under affine maps is closed iff the the map
+is continuous. -/
+theorem continuous_iff_isClosed_exists  (φ : P →ᵃ[𝕜] 𝕜) :
+    Continuous φ ↔ ∃ k : 𝕜, IsClosed { p : P | φ p = k } := by
+  admit
+
+/-- The preimage of points under affine maps is clsed iff the the map
+is continuous. -/
+theorem continuous_iff_isClosed_ker  (φ : P →ᵃ[𝕜] 𝕜) :
+    Continuous φ ↔ IsClosed { p : P | φ p = 0 } := by
+  admit
 
 end AffineMap
 

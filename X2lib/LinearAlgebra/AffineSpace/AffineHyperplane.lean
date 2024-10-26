@@ -77,7 +77,7 @@ instance Affine.instSetLikeHyperplane : SetLike (Affine.Hyperplane 𝕜 P) P whe
 
 /-- A defining map for a hyperplane is an affine map that defines the
 hyperplane. -/
-def Affine.Hyperplane.is_nullspace_witness (hp : Affine.Hyperplane 𝕜 P) (φ : P →ᵃ[𝕜] 𝕜) : Prop :=
+def Affine.Hyperplane.IsNullspaceWitness (hp : Affine.Hyperplane 𝕜 P) (φ : P →ᵃ[𝕜] 𝕜) : Prop :=
   Function.Nonconstant φ ∧ hp = { p : P | φ p = 0 }
 
 end «Hyperplane definitions»
@@ -88,10 +88,6 @@ section «Hyperplane Properties»
 variable {𝕜 : Type u} [DivisionRing 𝕜]
 variable {V : Type v} [AddCommGroup V] [Module 𝕜 V]
 variable {P : Type w} [AddTorsor V P]
-
-namespace Affine
-
-end Affine
 
 namespace Affine.Hyperplane
 
@@ -114,8 +110,8 @@ theorem mk_coe_set (φ : P →ᵃ[𝕜] 𝕜)(h : Function.Nonconstant φ) :
 /-- The affine map that defines a hyperplane through `Affine.Hyperplane.mk`
 is a witness for this hyperplane. -/
 theorem mk_nullspace_witness (φ : P →ᵃ[𝕜] 𝕜)(h : Function.Nonconstant φ) :
-    (Hyperplane.mk φ h).is_nullspace_witness 𝕜 P φ := by
-  rw [is_nullspace_witness, mk_coe_set]; apply And.intro h; rfl
+    (Hyperplane.mk φ h).IsNullspaceWitness 𝕜 P φ := by
+  rw [Affine.Hyperplane.IsNullspaceWitness, mk_coe_set]; apply And.intro h; rfl
 
 end Affine.Hyperplane
 
@@ -317,17 +313,17 @@ open Set
 
 /-- Every witness of a hyperplane is in fact continuous. -/
 @[continuity]
-theorem nullspace_witness_continuous (h : Hyperplane 𝕜 P) (hc : IsClosed (h : Set P))
-    (hn : h.is_nullspace_witness _ _ φ) : Continuous φ := by
+theorem nullspace_witness_is_continuous (h : Hyperplane 𝕜 P) (hc : IsClosed (h : Set P))
+    (hn : h.IsNullspaceWitness _ _ φ) : Continuous φ := by
   --exact LinearMap.continuous_iff_isClosed_ker
   admit
 
 /-- The hyperplane is the nullspace of continuous affine maps to the
 ground ring. -/
-theorem is_nullspace_continuous (h : Hyperplane 𝕜 P) (hc : IsClosed (h : Set P)) :
+theorem is_nullspace_of_continuous_map (h : Hyperplane 𝕜 P) (hc : IsClosed (h : Set P)) :
     ∃ φ : P →ᴬ[𝕜] 𝕜, Function.Nonconstant φ ∧ h = { p : P | φ p = 0 } := by
   rcases h.is_nullspace with ⟨φ, hφ⟩
-  use ⟨φ, h.nullspace_witness_continuous hc hφ⟩
+  use ⟨φ, h.nullspace_witness_is_continuous hc hφ⟩
   exact hφ
 
 end Affine.Hyperplane
