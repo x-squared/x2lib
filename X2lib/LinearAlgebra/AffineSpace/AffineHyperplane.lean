@@ -20,7 +20,7 @@ to another.
 open Set
 
 -- ********************************************************************
-section «Hyperplane definitions»
+section «Definitions»
 
 /-!
 ## Definitions
@@ -80,10 +80,10 @@ hyperplane. -/
 def Affine.Hyperplane.IsNullspaceWitness (hp : Affine.Hyperplane 𝕜 P) (φ : P →ᵃ[𝕜] 𝕜) : Prop :=
   Function.Nonconstant φ ∧ hp = { p : P | φ p = 0 }
 
-end «Hyperplane definitions»
+end «Definitions»
 
 -- --------------------------------------------------------------------
-section «Hyperplane Properties»
+section «Properties»
 
 variable {𝕜 : Type u} [DivisionRing 𝕜]
 variable {V : Type v} [AddCommGroup V] [Module 𝕜 V]
@@ -115,7 +115,7 @@ theorem mk_nullspace_witness (φ : P →ᵃ[𝕜] 𝕜)(h : Function.Nonconstant
 
 end Affine.Hyperplane
 
-end «Hyperplane Properties»
+end «Properties»
 
 -- --------------------------------------------------------------------
 section «Hyperplane Nullspace-Codim-1 Equivalence»
@@ -309,7 +309,6 @@ variable {V : Type v} [AddCommGroup V] [Module 𝕜 V] [TopologicalSpace V] [Top
 variable {P : Type w} [AddTorsor V P] [TopologicalSpace P] [TopologicalAddTorsor V P]
 
 namespace Affine.Hyperplane
-open Set
 
 /-- Every witness of a hyperplane is in fact continuous. -/
 @[continuity]

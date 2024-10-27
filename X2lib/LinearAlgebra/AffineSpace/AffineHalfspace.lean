@@ -9,6 +9,8 @@ import X2lib.Aux.Set
 import X2lib.Aux.Affine
 import X2lib.Aux.Module
 
+import X2lib.LinearAlgebra.AffineSpace.AffineHyperplane
+
 /-!
 # Affine halfspaces
 
@@ -25,7 +27,7 @@ section «Definition»
 
 namespace Affine
 
-variable (𝕜 : Type u) [LinearOrderedCommRing 𝕜]
+variable (𝕜 : Type u) [LinearOrderedRing 𝕜]
 variable {V : Type v} [AddCommGroup V] [Module 𝕜 V]
 variable (P : Type w) [AddTorsor V P]
 
@@ -34,20 +36,20 @@ that are mapped by a nontrivial functional to the nonnegative elements
 of the (necessarily) ordered base ring. -/
 structure IsHalfspace (carrier : Set P) : Prop where
   /- There is a witness that defines the carrier. -/
-  witness : ∃ φ : P →ᴬ[𝕜] 𝕜, Function.Nonconstant φ ∧ carrier = { p : P | 0 ≤ φ p }
+  witness : ∃ φ : P →ᵃ[𝕜] 𝕜, Function.Nonconstant φ ∧ carrier = { p : P | 0 ≤ φ p }
 
 /-- A halfspace is a set in an affine space that consists of all points
 that are mapped by a nontrivial functional to the nonnegative elements
 of the (necessarily) ordered base ring. -/
 structure Halfspace
-    (𝕜 : Type u) [LinearOrderedCommRing 𝕜] [TopologicalSpace 𝕜]
+    (𝕜 : Type u) [LinearOrderedRing 𝕜]
     {V : Type v} [AddCommGroup V] [Module 𝕜 V]
-    (P : Type w) [AddTorsor V P] [TopologicalSpace P] where
+    (P : Type w) [AddTorsor V P] where
   mk' ::
   /- The set defined by the halfspace. -/
   carrier : Set P
   /- There is a witness that defines the carrier. -/
-  witness : ∃ φ : P →ᴬ[𝕜] 𝕜, Function.Nonconstant φ ∧ carrier = { p : P | 0 ≤ φ p }
+  witness : ∃ φ : P →ᵃ[𝕜] 𝕜, Function.Nonconstant φ ∧ carrier = { p : P | 0 ≤ φ p }
 
 end Affine
 
@@ -58,15 +60,15 @@ namespace Affine.Halfspace
 
 section «Properties»
 
-section «Ring»
+section «LinearOrderedRing»
 
-variable {𝕜 : Type u} [LinearOrderedCommRing 𝕜]
+variable {𝕜 : Type u} [LinearOrderedRing 𝕜]
 variable {V : Type v} [AddCommGroup V] [Module 𝕜 V]
 variable {P : Type w} [AddTorsor V P]
 
 /-- This allows us to view the fact that as set `IsHalfspace`
-as `Hyperplane`.-/
-instance instCoeSort_IsHyperplane_to_Halfspace : CoeSort (IsHalfspace 𝕜 P s) (Halfspace 𝕜 P) where
+as `Halfspace`.-/
+instance instCoeSort_IsHalfspace_to_Halfspace : CoeSort (IsHalfspace 𝕜 P s) (Halfspace 𝕜 P) where
   coe h := {
     carrier := s
     witness := h.witness
@@ -84,32 +86,34 @@ instance : SetLike (Halfspace 𝕜 P) P where
       _   = ⟨hs1.carrier, ⟨f1, ⟨nf1nc, heq.symm ▸ hs1c⟩⟩⟩ := by simp only [heq]
       _  = hs1 := rfl
 
+/-- The carrier of the halfspace is the set defined by the halfspace. -/
+@[simp] theorem coe_carrier (s : Halfspace 𝕜 P) : ↑s = s.carrier := rfl
+
 /-- This defines what it means to be a witness.  -/
-def is_witness (s : Halfspace 𝕜 P) (φ : P →ᴬ[𝕜] 𝕜) : Prop :=
+def is_witness (s : Halfspace 𝕜 P) (φ : P →ᵃ[𝕜] 𝕜) : Prop :=
   Function.Nonconstant φ ∧ s = { p : P | 0 ≤ φ p }
 
 /-- Create a hyperplane from a given affine map. -/
-def mk (φ : P →ᴬ[𝕜] 𝕜) (h : Function.Nonconstant φ) : Halfspace 𝕜 P where
+def mk (φ : P →ᵃ[𝕜] 𝕜) (h : Function.Nonconstant φ) : Halfspace 𝕜 P where
   carrier := { p : P | 0 ≤ φ p }
   witness := ⟨φ, h, rfl⟩
 
-theorem mk_coe (φ : P →ᴬ[𝕜] 𝕜) (h : Function.Nonconstant φ) :
+theorem mk_coe (φ : P →ᵃ[𝕜] 𝕜) (h : Function.Nonconstant φ) :
     ↑(Halfspace.mk φ h) = { p : P | 0 ≤ φ p } := by rfl
 
 /-- The affine map that defines a halfspace is a witness for this halfspace. -/
-theorem mk_witness (φ : P →ᴬ[𝕜] 𝕜)(h : Function.Nonconstant φ) :
+theorem mk_witness (φ : P →ᵃ[𝕜] 𝕜)(h : Function.Nonconstant φ) :
     (Halfspace.mk φ h).is_witness φ := by
   rw [is_witness, mk_coe]; apply And.intro h; rfl
 
 /-- Condition for a point to be ina halfspace once a witness is given. -/
 theorem mem_halfspace (hs : Halfspace 𝕜 P) (hw : is_witness hs φ) :
     p ∈ hs ↔ 0 ≤ φ p := by
-
   admit
 
 /-- A compatible map for a halfspace is a map that is nonnegative on
 the carrier.  -/
-def is_compatible_map (s : Halfspace 𝕜 P) (φ : P →ᴬ[𝕜] 𝕜) : Prop :=
+def is_compatible_map (s : Halfspace 𝕜 P) (φ : P →ᵃ[𝕜] 𝕜) : Prop :=
   Function.Nonconstant φ ∧ ∀ p ∈ s.carrier, 0 ≤ φ p
 
 /-- A compatible map for a halfspace is in fact a witness -/
@@ -120,36 +124,44 @@ theorem compatible_map_is_witness (s : Halfspace 𝕜 P) (hdef : s.is_compatible
 /-- The boundary is the set of points in a halfspace that are mapped
 to 0 values under a witnessing map.
 TODO Show that this is well-defined -/
-def boundary (s : Halfspace 𝕜 P) : Set P :=
-  { p : P | ∃ φ : P →ᴬ[𝕜] 𝕜, s.is_witness φ ∧ 0 = φ p }
+def boundary (s : Halfspace 𝕜 P) : Hyperplane 𝕜 P :=
+  { p : P | ∃ φ : P →ᵃ[𝕜] 𝕜, s.is_witness φ ∧ 0 = φ p }
 
 /-- The interior is the set of points in a halfspace that are mapped
 to nonpositive values under a defining map.
 TODO Show that this is well-defined -/
 def interior (s : Halfspace 𝕜 P) : Set P :=
-  { p : P | ∃ φ : P →ᴬ[𝕜] 𝕜, s.is_witness φ ∧ 0 < φ p }
+  { p : P | ∃ φ : P →ᵃ[𝕜] 𝕜, s.is_witness φ ∧ 0 < φ p }
 
 /-- The interor of a `Halfspace` is a subset of the half-space. -/
-theorem interior_subset (s : Halfspace 𝕜 P) :
+theorem interior_is_subset (s : Halfspace 𝕜 P) :
     s.interior ⊆ s := by
   admit
 
 /-- The complement of a halfspace is the set of points that are mapped
 to negative values under a defining map. -/
-theorem compl_eq (s : Halfspace 𝕜 P) : (↑s)ᶜ = { p : P | ∃ φ : P →ᴬ[𝕜] 𝕜, s.is_witness φ ∧ φ p < 0 } := by
+theorem compl_eq (s : Halfspace 𝕜 P) : (↑s)ᶜ = { p : P | ∃ φ : P →ᵃ[𝕜] 𝕜, s.is_witness φ ∧ φ p < 0 } := by
   admit
+
+end «LinearOrderedRing»
+
+section «LinearOrderedCommRing»
+
+variable {𝕜 : Type u} [LinearOrderedCommRing 𝕜]
+variable {V : Type v} [AddCommGroup V] [Module 𝕜 V]
+variable {P : Type w} [AddTorsor V P]
 
 /-- A halfspace is convex. -/
 theorem is_convex (s : Halfspace 𝕜 P) : Affine.IsConvex 𝕜 P s := by
   admit
 
-end «Ring»
+end «LinearOrderedCommRing»
 
-section «Field»
+section «LinearOrderedField»
 
-variable {𝕜 : Type u} [LinearOrderedField 𝕜] [TopologicalSpace 𝕜]
+variable {𝕜 : Type u} [LinearOrderedField 𝕜]
 variable {V : Type v} [AddCommGroup V] [Module 𝕜 V]
-variable {P : Type w} [AddTorsor V P] [TopologicalSpace P]
+variable {P : Type w} [AddTorsor V P]
 
 /-- An `Affine.Halfspace.interior` is not empty. -/
 theorem interior_nonempty (s : Halfspace 𝕜 P) : s.interior.Nonempty := by
@@ -169,9 +181,7 @@ theorem interior_nonempty (s : Halfspace 𝕜 P) : s.interior.Nonempty := by
         apply Set.nonempty_of_mem; rw [interior, Set.mem_setOf]; use φ
         apply And.intro hw
         exact h ▸ zero_lt_one
-      have : ∀ x, φ.toAffineMap x = φ x:= by intro x; rfl
-      simp only [←this]
-      simp only [p, AffineMap.map_vadd, LinearMapClass.map_smul, AffineMap.linearMap_vsub, this q0, this q1]
+      simp only [p, AffineMap.map_vadd, LinearMapClass.map_smul, AffineMap.linearMap_vsub]
       simp only [AffineMap.linearMap_vsub, smul_eq_mul, vsub_eq_sub, vadd_eq_add]
       rw [div_eq_mul_inv, mul_assoc]; nth_rewrite 2 [mul_comm]; rw [Field.mul_inv_cancel]
       ring_nf
@@ -183,13 +193,13 @@ theorem interior_nonempty (s : Halfspace 𝕜 P) : s.interior.Nonempty := by
 
 /-- A `Affine.HalfSpace` is not empty. -/
 theorem nonempty (s : Halfspace 𝕜 P) : (s : Set P).Nonempty :=
-  Set.Nonempty.mono s.interior_subset s.interior_nonempty
+  Set.Nonempty.mono s.interior_is_subset s.interior_nonempty
 
 /-- The boundary `Affine.HalfSpace.boundary` of a halfspace is not empty. -/
 theorem boundary_nonempty (s : Halfspace 𝕜 P) : (s.boundary : Set P).Nonempty := by
   admit
 
-end «Field»
+end «LinearOrderedField»
 
 end «Properties»
 
@@ -205,25 +215,24 @@ This section passes fron the algebraic to the topological category.
 Once we assume continuity (of maps), halfspaces will be closed sets.
 -/
 
-variable {𝕜 : Type u} [Ring 𝕜] [TopologicalSpace 𝕜]
-variable {V : Type v} [AddCommGroup V] [Module 𝕜 V]
-variable {P : Type w} [AddTorsor V P] [TopologicalSpace P]
+variable {𝕜 : Type u} [LinearOrderedField 𝕜] [NontriviallyNormedField 𝕜] [TopologicalSpace 𝕜] [LocallyCompactSpace 𝕜]
+variable {V : Type v} [AddCommGroup V] [Module 𝕜 V] [TopologicalSpace V] [TopologicalAddGroup V] [T2Space V]
+variable {P : Type w} [AddTorsor V P] [TopologicalSpace P] [TopologicalAddTorsor V P]
 
 namespace Affine.Halfspace
 
 /-- Every witness of a hyperplane is in fact continuous. -/
 @[continuity]
-theorem nullspace_witness_continuous (h : Halfspace 𝕜 P) (hc : IsClosed h)
-    {φ : P →ᵃ[𝕜] 𝕜} (hn : h.is_nullspace_witness φ) : 1=1 := by
+theorem witness_is_continuous (h : Halfspace 𝕜 P) (hc : IsClosed (h : Set P))
+    {φ : P →ᵃ[𝕜] 𝕜} (hn : h.is_witness φ) : Continuous φ := by
   admit
-  --Continuous φ
 
 /-- The hyperplane is the nullspace of continuous affine maps to the
 ground ring. -/
-theorem is_cont_nullspace (h : Halfspace 𝕜 P) (hc : IsClosed h) :
-    ∃ φ : P →ᴬ[𝕜] 𝕜, Function.Nonconstant φ ∧ ch = { p : P | φ p = 0 } := by
-  rcases ch.is_nullspace with ⟨φ, hφ⟩
-  use ⟨φ, ch.nullspace_witness_continuous hφ⟩
+theorem witness_continuous (h : Halfspace 𝕜 P) (hc : IsClosed (h : Set P)) :
+    ∃ φ : P →ᴬ[𝕜] 𝕜, Function.Nonconstant φ ∧ h = { p : P | 0 ≤ φ p } := by
+  rcases h.witness with ⟨φ, hφ⟩
+  use ⟨φ, h.witness_is_continuous hc hφ⟩
   exact hφ
 
 end Affine.Halfspace
